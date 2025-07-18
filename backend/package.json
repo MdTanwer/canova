@@ -12,9 +12,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
     "@types/mongoose": "^5.11.96",
     "@types/morgan": "^1.9.10",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
