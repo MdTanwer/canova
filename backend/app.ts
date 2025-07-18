@@ -19,13 +19,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-// app.use("/api/users", userRouter);
+app.use("/api/users", userRouter);
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
     status: "OK",
-    service: "User Registration API",
+    service: " API working successfully",
   });
 });
 

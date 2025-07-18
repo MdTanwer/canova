@@ -29,11 +29,5 @@ export const validateRegistration = (
     return next(createError(usernameValidation.message!, 400));
   }
 
-  // Validate password
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.isValid) {
-    return next(createError(passwordValidation.message!, 400));
-  }
-
   next();
 };
