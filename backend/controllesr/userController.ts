@@ -101,35 +101,27 @@ export const loginUser = async (
     next(createError("Login failed", 500));
   }
 };
-export const sendOTP = async (req: Request, res: Response): Promise<void> => {
+export const sendOTP = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email } = req.body;
 
     if (!email) {
-      res.status(400).json({
-        success: false,
-        message: "Email is required",
-      });
-      return;
+      return next(createError("User with this email  already exists", 409));
     }
 
     // Check if user exists
     let user = await User.findOne({ email });
 
     if (!user) {
-      res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-      return;
+      return next(createError("User not found", 404));
     }
 
     if (user.isVerified) {
-      res.status(400).json({
-        success: false,
-        message: "Email is already verified",
-      });
-      return;
+      return next(createError("Email is already verified", 400));
     }
 
     // Generate OTP and secure token
@@ -165,13 +157,14 @@ export const sendOTP = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error("Send OTP error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to send OTP",
-    });
+    return next(createError("Failed to send OTP", 500));
   }
 };
-export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
+export const verifyOTP = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { otp } = req.body;
 
@@ -278,5 +271,85 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
       success: false,
       message: "Failed to verify OTP",
     });
+  }
+};
+
+export const setPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { password } = req.body;
+    const passwordToken = req.cookies.password_setup_token as string;
+
+    if (!password) {
+      return next(createError("Password is required", 400));
+    }
+
+    if (!passwordToken) {
+      return next(
+        createError(
+          "No password setup session found. Please verify your email first",
+          400
+        )
+      );
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return next(
+        createError("Password must be at least 6 characters long", 400)
+      );
+    }
+
+    // Verify password setup token
+    let tokenPayload;
+    try {
+      tokenPayload = verifyOTPToken(passwordToken);
+    } catch (error) {
+      res.clearCookie("password_setup_token");
+      return next(
+        createError(
+          "Password setup session expired. Please verify your email again",
+          400
+        )
+      );
+    }
+
+    const email = tokenPayload.email.replace("_verified", "");
+
+    // Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.clearCookie("password_setup_token");
+      return next(createError("User not found", 404));
+    }
+
+    // Check if user is verified
+    if (!user.isVerified) {
+      res.clearCookie("password_setup_token");
+      return next(createError("Please verify your email first", 400));
+    }
+
+    // Hash password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Update user password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Clear password setup cookie
+    res.clearCookie("password_setup_token");
+
+    res.status(200).json({
+      success: true,
+      message: "Password set successfully. You can now login",
+    });
+  } catch (error) {
+    console.error("Set password error:", error);
+    return next(createError("Failed to set password", 500));
   }
 };

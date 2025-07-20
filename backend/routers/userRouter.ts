@@ -4,6 +4,7 @@ import {
   loginUser,
   registerUser,
   sendOTP,
+  setPassword,
   verifyOTP,
 } from "../controllesr/userController";
 import { validateRegistration } from "../middlewares/validation";
@@ -15,3 +16,4 @@ userRouter.post("/register", validateRegistration, registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/send-otp", sendOTP);
 userRouter.post("/verify-otp", verifyOTP);
+userRouter.post("/set-password", setPassword);
