@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import { userRouter } from "./routers/userRouter";
 import { errorHandler } from "./middlewares/errorHandler";
 import connectDB from "./utils/db";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 // Security middleware
 app.use(helmet());
 app.use(cors());
+app.use(cookieParser());
 
 // Body parsing middleware
 app.use(bodyParser.json());
