@@ -7,6 +7,4 @@ export const userRouter = express.Router();
 
 // POST /api/users/register - Register a new user
 userRouter.post("/register", validateRegistration, registerUser);
-userRouter.post("/login", (req: Request, res: Response) => {
-  res.send("hello this is the login page");
-});
+userRouter.post("/login", loginUser);
