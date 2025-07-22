@@ -1,52 +1,26 @@
-import React, { useState } from "react";
+import React from "react";
 import "../../styles/login.css";
-import { useAuth } from "../../context/useAuth";
 import vector from "../../assets/Logo.svg";
 
-const Login: React.FC = () => {
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
-  );
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+interface LoginProps {
+  formData: { email: string; password: string };
+  errors: { email?: string; password?: string };
+  apiError: string | null;
+  showPassword: boolean;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: (e?: React.FormEvent) => void;
+  onTogglePassword: () => void;
+}
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
-    setApiError(null);
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: { email?: string; password?: string } = {};
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!validateForm()) return;
-    try {
-      await login(formData.email, formData.password);
-      // Redirect to home or dashboard if needed
-    } catch (err: any) {
-      setApiError(err.response?.data?.message || "Login failed");
-    }
-  };
-
+const Login: React.FC<LoginProps> = ({
+  formData,
+  errors,
+  apiError,
+  showPassword,
+  onInputChange,
+  onSubmit,
+  onTogglePassword,
+}) => {
   return (
     <div className="signup-container">
       {/* Logo */}
@@ -68,7 +42,7 @@ const Login: React.FC = () => {
           </p>
         </div>
         {/* Form Fields */}
-        <form className="form-fields" onSubmit={handleSubmit}>
+        <form className="form-fields" onSubmit={onSubmit}>
           {/* Email Field */}
           <div className="field-group">
             <label htmlFor="email" className="field-label">
@@ -79,7 +53,7 @@ const Login: React.FC = () => {
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleInputChange}
+              onChange={onInputChange}
               className={`form-input ${errors.email ? "input-error" : ""}`}
               placeholder="Enter your email"
             />
@@ -98,7 +72,7 @@ const Login: React.FC = () => {
                 id="password"
                 name="password"
                 value={formData.password}
-                onChange={handleInputChange}
+                onChange={onInputChange}
                 placeholder="Enter your password"
                 className={`form-input password-input ${
                   errors.password ? "input-error" : ""
@@ -106,7 +80,7 @@ const Login: React.FC = () => {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={onTogglePassword}
                 className="password-toggle"
                 aria-label="Toggle password visibility"
               >

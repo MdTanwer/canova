@@ -10,6 +10,8 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import { useAuth } from "./context/useAuth";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 // ProtectedRoute component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -22,6 +24,17 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
         <Routes>
           <Route
             path="/"
