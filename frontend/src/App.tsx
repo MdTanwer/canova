@@ -1,7 +1,12 @@
 import "./App.css";
+import SignUp from "./pages/siginup/siginUp";
 
 function App() {
-  return <>hello this is the frontend </>;
+  return (
+    <>
+      <SignUp />
+    </>
+  );
 }
 
 export default App;
