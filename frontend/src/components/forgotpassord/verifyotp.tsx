@@ -3,7 +3,7 @@ import "../../styles/sendotp.css";
 import type { FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
 
-const Sendotp: React.FC = () => {
+const Verifyotp: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
   });
@@ -61,7 +61,8 @@ const Sendotp: React.FC = () => {
         <div className="form-header">
           <h1 className="form-title">Welcome CANOVA 👋</h1>
           <p className="form-subtitle">
-            Please enter your registered email ID <br /> to receive an OTP
+            We’ve sent a 6-digit OTP to your <br />
+            registered mail. <br /> Please enter it below to sign in.
           </p>
         </div>
 
@@ -110,4 +111,4 @@ const Sendotp: React.FC = () => {
   );
 };
 
-export default Sendotp;
+export default Verifyotp;

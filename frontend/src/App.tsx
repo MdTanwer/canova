@@ -1,10 +1,11 @@
 import "./App.css";
-import Sendotp from "./components/forgotpassord/sendotp";
+
+import LoginPage from "./pages/login/loginPage";
 
 function App() {
   return (
     <>
-      <Sendotp />
+      <LoginPage />
     </>
   );
 }
