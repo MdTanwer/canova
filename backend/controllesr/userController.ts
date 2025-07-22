@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { hashPassword } from "../utils/auth";
 import { createError } from "../middlewares/errorHandler";
-import User from "../models/User";
+import User, { IUser } from "../models/User";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/otpGenerator";
@@ -351,5 +351,31 @@ export const setPassword = async (
   } catch (error) {
     console.error("Set password error:", error);
     return next(createError("Failed to set password", 500));
+  }
+};
+
+export const getme = async (
+  req: Request & { user?: IUser },
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = await User.findById(req.user?._id);
+
+    if (!userId) {
+      return res.status(404).json({
+        status: "fail",
+        message: "User not found",
+      });
+    }
+
+    const user = await User.findOne({ email: userId.email });
+
+    res.status(200).json({
+      status: "success",
+      user,
+    });
+  } catch (error) {
+    next(error);
   }
 };

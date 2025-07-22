@@ -16,6 +16,7 @@ const LoginPage = () => {
   );
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -41,6 +42,7 @@ const LoginPage = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!validateForm()) return;
+    setLoading(true);
     try {
       await login(formData.email, formData.password);
       toast.success("Login successful!");
@@ -53,6 +55,8 @@ const LoginPage = () => {
       }
       setApiError(message);
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,6 +71,7 @@ const LoginPage = () => {
       onInputChange={handleInputChange}
       onSubmit={handleSubmit}
       onTogglePassword={handleTogglePassword}
+      loading={loading}
     />
   );
 };

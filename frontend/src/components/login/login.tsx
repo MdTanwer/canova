@@ -1,6 +1,9 @@
 import React from "react";
 import "../../styles/login.css";
 import vector from "../../assets/Logo.svg";
+import { IoMdEye } from "react-icons/io";
+import { FaEyeSlash } from "react-icons/fa6";
+import { Link } from "react-router-dom";
 
 interface LoginProps {
   formData: { email: string; password: string };
@@ -10,6 +13,7 @@ interface LoginProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e?: React.FormEvent) => void;
   onTogglePassword: () => void;
+  loading: boolean;
 }
 
 const Login: React.FC<LoginProps> = ({
@@ -20,6 +24,7 @@ const Login: React.FC<LoginProps> = ({
   onInputChange,
   onSubmit,
   onTogglePassword,
+  loading,
 }) => {
   return (
     <div className="signup-container">
@@ -84,18 +89,27 @@ const Login: React.FC<LoginProps> = ({
                 className="password-toggle"
                 aria-label="Toggle password visibility"
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? (
+                  <FaEyeSlash size={20} />
+                ) : (
+                  <IoMdEye size={20} />
+                )}
               </button>
             </div>
             {errors.password && (
               <span className="error-message">{errors.password}</span>
             )}
           </div>
+
           {/* Error Message */}
           {apiError && <div className="error-message">{apiError}</div>}
+
+          <div className="forgot-pass">
+            <Link to="/forgot-password">Forgot Password?</Link>
+          </div>
           {/* Login Button */}
-          <button className="submit-button" type="submit">
-            Login
+          <button className="submit-button" type="submit" disabled={loading}>
+            {loading ? <span className="spinner">Loading...</span> : "Sign In"}
           </button>
         </form>
         {/* Footer */}

@@ -30,54 +30,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const storedToken = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } else {
-        setToken(null);
+    const checkAuth = async () => {
+      try {
+        const res = await api.get("/users/me", { withCredentials: true });
+        if (
+          res &&
+          typeof res === "object" &&
+          res.data &&
+          typeof res.data === "object" &&
+          "user" in res.data
+        ) {
+          setUser((res.data as { user: User }).user);
+          setToken("cookie");
+        } else {
+          setUser(null);
+          setToken(null);
+        }
+      } catch {
         setUser(null);
+        setToken(null);
       }
       setLoading(false);
     };
-
     checkAuth();
-    window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
   }, []);
 
   type AuthResponse = { token: string; user: User };
 
   const login = async (email: string, password: string) => {
-    const res = await api.post<AuthResponse>("/users/login", {
-      email,
-      password,
-    });
-    setToken(res.data.token);
+    const res = await api.post<AuthResponse>(
+      "/users/login",
+      {
+        email,
+        password,
+      },
+      { withCredentials: true }
+    );
     setUser(res.data.user);
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    setToken("cookie");
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const res = await api.post<AuthResponse>("/users/register", {
-      name,
-      email,
-      password,
-    });
-    setToken(res.data.token);
+    const res = await api.post<AuthResponse>(
+      "/users/register",
+      {
+        name,
+        email,
+        password,
+      },
+      { withCredentials: true }
+    );
     setUser(res.data.user);
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+    setToken("cookie");
   };
 
   const logout = () => {
-    setToken(null);
     setUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    setToken(null);
+    // Optionally, call a backend logout endpoint to clear the cookie
   };
 
   const forgotPassword = async (email: string) => {

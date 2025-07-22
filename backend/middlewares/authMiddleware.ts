@@ -24,7 +24,7 @@ export const verifyToken = (
     }
 
     // Attach the full user data to the request object
-    req.user = decoded.user; // Now req.user contains the full user data (excluding password)
+    (req as any).user = decoded.user; // Now req.user contains the full user data (excluding password)
     next();
   });
 };

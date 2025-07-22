@@ -6,8 +6,10 @@ import {
   sendOTP,
   setPassword,
   verifyOTP,
+  getme,
 } from "../controllesr/userController";
 import { validateRegistration } from "../middlewares/validation";
+import { verifyToken } from "../middlewares/authMiddleware";
 
 export const userRouter = express.Router();
 
@@ -17,3 +19,4 @@ userRouter.post("/login", loginUser);
 userRouter.post("/send-otp", sendOTP);
 userRouter.post("/verify-otp", verifyOTP);
 userRouter.post("/set-password", setPassword);
+userRouter.get("/me", verifyToken, getme);
