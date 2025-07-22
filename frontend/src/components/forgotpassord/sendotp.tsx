@@ -2,46 +2,47 @@ import React, { useState } from "react";
 import "../../styles/sendotp.css";
 import type { FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
+import { useAuth } from "../../context/useAuth";
 
 const Sendotp: React.FC = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-  });
+  const { forgotPassword } = useAuth();
+  const [formData, setFormData] = useState({ email: "" });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setApiError(null);
+    setSuccess(null);
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (): void => {
-    if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Add your API call here
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!validateForm()) return;
+    try {
+      await forgotPassword(formData.email);
+      setSuccess("OTP sent to your email.");
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "response" in err) {
+        // @ts-expect-error: response may exist on error
+        setApiError(err.response?.data?.message || "Failed to send OTP");
+      } else {
+        setApiError("Failed to send OTP");
+      }
     }
   };
 
@@ -54,7 +55,6 @@ const Sendotp: React.FC = () => {
           <span className="logo-text">CANOVA</span>
         </div>
       </div>
-
       {/* Main Form Card */}
       <div className="form-card">
         {/* Header */}
@@ -64,9 +64,8 @@ const Sendotp: React.FC = () => {
             Please enter your registered email ID <br /> to receive an OTP
           </p>
         </div>
-
         {/* Form Fields */}
-        <div className="form-fields">
+        <form className="form-fields" onSubmit={handleSubmit}>
           {/* Email Field */}
           <div className="field-group">
             <label htmlFor="email" className="field-label">
@@ -85,22 +84,19 @@ const Sendotp: React.FC = () => {
               <span className="error-message">{errors.email}</span>
             )}
           </div>
-
-          {/* Sign Up Button */}
-          <button
-            onClick={handleSubmit}
-            className="submit-button"
-            type="button"
-          >
-            Sign up
+          {/* Error/Success Message */}
+          {apiError && <div className="error-message">{apiError}</div>}
+          {success && <div className="success-message">{success}</div>}
+          {/* Send OTP Button */}
+          <button className="submit-button" type="submit">
+            Send OTP
           </button>
-        </div>
-
+        </form>
         {/* Footer */}
         <div className="form-footer">
           <p className="footer-text">
             Do you have an account?{" "}
-            <a href="/signin" className="signin-link">
+            <a href="/login" className="signin-link">
               Sign in
             </a>
           </p>

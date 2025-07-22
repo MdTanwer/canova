@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import "./siginUp.css";
 import type { FormData, FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
+import { useAuth } from "../../context/useAuth";
 
 const SignUp: React.FC = () => {
+  const { register } = useAuth();
   const [showCreatePassword, setShowCreatePassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
@@ -14,56 +16,47 @@ const SignUp: React.FC = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    setApiError(null);
   };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     }
-
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-
     if (!formData.createPassword) {
       newErrors.createPassword = "Password is required";
     } else if (formData.createPassword.length < 8) {
       newErrors.createPassword = "Password must be at least 8 characters";
     }
-
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.createPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (): void => {
-    if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Add your API call here
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!validateForm()) return;
+    try {
+      await register(formData.name, formData.email, formData.createPassword);
+      // Redirect to home or login page if needed
+    } catch (err: any) {
+      setApiError(err.response?.data?.message || "Registration failed");
     }
   };
 
@@ -109,7 +102,6 @@ const SignUp: React.FC = () => {
           <span className="logo-text">CANOVA</span>
         </div>
       </div>
-
       {/* Main Form Card */}
       <div className="form-card">
         {/* Header */}
@@ -121,9 +113,8 @@ const SignUp: React.FC = () => {
             Sign in to start managing your projects
           </p>
         </div>
-
         {/* Form Fields */}
-        <div className="form-fields">
+        <form className="form-fields" onSubmit={handleSubmit}>
           {/* Name Field */}
           <div className="field-group">
             <label htmlFor="name" className="field-label">
@@ -142,7 +133,6 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.name}</span>
             )}
           </div>
-
           {/* Email Field */}
           <div className="field-group">
             <label htmlFor="email" className="field-label">
@@ -161,7 +151,6 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.email}</span>
             )}
           </div>
-
           {/* Create Password Field */}
           <div className="field-group">
             <label htmlFor="createPassword" className="field-label">
@@ -192,7 +181,6 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.createPassword}</span>
             )}
           </div>
-
           {/* Confirm Password Field */}
           <div className="field-group">
             <label htmlFor="confirmPassword" className="field-label">
@@ -223,22 +211,18 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.confirmPassword}</span>
             )}
           </div>
-
+          {/* Error Message */}
+          {apiError && <div className="error-message">{apiError}</div>}
           {/* Sign Up Button */}
-          <button
-            onClick={handleSubmit}
-            className="submit-button"
-            type="button"
-          >
+          <button className="submit-button" type="submit">
             Sign up
           </button>
-        </div>
-
+        </form>
         {/* Footer */}
         <div className="form-footer">
           <p className="footer-text">
             Do you have an account?{" "}
-            <a href="/signin" className="signin-link">
+            <a href="/login" className="signin-link">
               Sign in
             </a>
           </p>
