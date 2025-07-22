@@ -1,10 +1,10 @@
 import "./App.css";
-import SignUp from "./pages/siginup/siginUp";
+import Sendotp from "./components/forgotpassord/sendotp";
 
 function App() {
   return (
     <>
-      <SignUp />
+      <Sendotp />
     </>
   );
 }
