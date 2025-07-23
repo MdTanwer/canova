@@ -24,6 +24,7 @@ interface AuthContextType {
   ) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
+  verifyEmail: (otp: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,12 +100,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const forgotPassword = async (email: string) => {
-    await api.post("/users/forgot-password", { email });
+    await api.post("/users/send-otp", { email });
+  };
+  const verifyEmail = async (otp: string) => {
+    await api.post("/users/verify-otp", { otp });
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout, forgotPassword }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        forgotPassword,
+        verifyEmail,
+      }}
     >
       {children}
     </AuthContext.Provider>

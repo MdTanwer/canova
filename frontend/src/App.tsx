@@ -13,6 +13,9 @@ import { useAuth } from "./context/useAuth";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import SignUp from "./pages/siginup/siginUp";
+import VerifyOtp from "./components/forgotpassord/verifyotp";
+// import SetPassword from "./components/forgotpassord/setpassword";
+import SendOtp from "./components/forgotpassord/sendotp";
 // ProtectedRoute component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -46,6 +49,9 @@ function App() {
           />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          {/* <Route path="/set-password" element={<SetPassword />} /> */}
+          <Route path="/forgot-password" element={<SendOtp />} />
         </Routes>
       </Router>
     </AuthProvider>

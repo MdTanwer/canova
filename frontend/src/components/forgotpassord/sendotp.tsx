@@ -3,9 +3,12 @@ import "../../styles/sendotp.css";
 import type { FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
 import { useAuth } from "../../context/useAuth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const Sendotp: React.FC = () => {
   const { forgotPassword } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState<string | null>(null);
@@ -36,13 +39,16 @@ const Sendotp: React.FC = () => {
     try {
       await forgotPassword(formData.email);
       setSuccess("OTP sent to your email.");
+      toast.success("OTP sent to your email.");
+      navigate("/verify-otp");
     } catch (err: unknown) {
+      let message = "Failed to send OTP";
       if (err && typeof err === "object" && "response" in err) {
         // @ts-expect-error: response may exist on error
-        setApiError(err.response?.data?.message || "Failed to send OTP");
-      } else {
-        setApiError("Failed to send OTP");
+        message = err.response?.data?.message || message;
       }
+      setApiError(message);
+      toast.error(message);
     }
   };
 
@@ -92,15 +98,6 @@ const Sendotp: React.FC = () => {
             Send OTP
           </button>
         </form>
-        {/* Footer */}
-        <div className="form-footer">
-          <p className="footer-text">
-            Do you have an account?{" "}
-            <a href="/login" className="signin-link">
-              Sign in
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

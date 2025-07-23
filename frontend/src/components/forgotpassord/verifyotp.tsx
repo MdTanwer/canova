@@ -2,12 +2,17 @@ import React, { useState } from "react";
 import "../../styles/sendotp.css";
 import type { FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
+import { useAuth } from "../../context/useAuth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const Verifyotp: React.FC = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    otp: "",
   });
+  const { verifyEmail } = useAuth();
   const [errors, setErrors] = useState<FormErrors>({});
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -27,21 +32,30 @@ const Verifyotp: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+    if (!formData.otp.trim()) {
+      newErrors.otp = "OTP is required";
+    } else if (!/^\d{6}$/.test(formData.otp)) {
+      newErrors.otp = "OTP must be a 6-digit number";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (): void => {
-    if (validateForm()) {
-      console.log("Form submitted:", formData);
-      // Add your API call here
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!validateForm()) return;
+    try {
+      await verifyEmail(formData.otp);
+      toast.success("OTP verified successfully!");
+      navigate("/set-password");
+    } catch (err: unknown) {
+      let message = "OTP verification failed";
+      if (err && typeof err === "object" && "response" in err) {
+        // @ts-expect-error: response may exist on error
+        message = err.response?.data?.message || message;
+      }
+      setErrors((prev) => ({ ...prev, otp: message }));
+      toast.error(message);
     }
   };
 
@@ -59,7 +73,7 @@ const Verifyotp: React.FC = () => {
       <div className="form-card">
         {/* Header */}
         <div className="form-header">
-          <h1 className="form-title">Welcome CANOVA 👋</h1>
+          <h1 className="form-title">Enter Your OTP</h1>
           <p className="form-subtitle">
             We’ve sent a 6-digit OTP to your <br />
             registered mail. <br /> Please enter it below to sign in.
@@ -67,45 +81,29 @@ const Verifyotp: React.FC = () => {
         </div>
 
         {/* Form Fields */}
-        <div className="form-fields">
-          {/* Email Field */}
+        <form className="form-fields" onSubmit={handleSubmit}>
+          {/* OTP Field */}
           <div className="field-group">
-            <label htmlFor="email" className="field-label">
-              Email
+            <label htmlFor="otp" className="field-label">
+              OTP
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="otp"
+              name="otp"
+              value={formData.otp}
               onChange={handleInputChange}
-              className={`form-input ${errors.email ? "input-error" : ""}`}
-              placeholder="Enter your email"
+              className={`form-input ${errors.otp ? "input-error" : ""}`}
+              placeholder="Enter your OTP"
             />
-            {errors.email && (
-              <span className="error-message">{errors.email}</span>
-            )}
+            {errors.otp && <span className="error-message">{errors.otp}</span>}
           </div>
 
-          {/* Sign Up Button */}
-          <button
-            onClick={handleSubmit}
-            className="submit-button"
-            type="button"
-          >
-            Sign up
+          {/* Confirm Button */}
+          <button className="submit-button" type="submit">
+            Confirm
           </button>
-        </div>
-
-        {/* Footer */}
-        <div className="form-footer">
-          <p className="footer-text">
-            Do you have an account?{" "}
-            <a href="/signin" className="signin-link">
-              Sign in
-            </a>
-          </p>
-        </div>
+        </form>
       </div>
     </div>
   );

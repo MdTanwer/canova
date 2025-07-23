@@ -3,6 +3,7 @@ export interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  otp?: string;
 }
 
 export interface FormErrors {
@@ -10,4 +11,5 @@ export interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  otp?: string;
 }
