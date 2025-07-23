@@ -1,0 +1,79 @@
+.project-card {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+  min-height: 160px;
+  justify-content: space-between;
+}
+
+.project-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #007bff;
+}
+
+.project-icon {
+  width: 48px;
+  height: 48px;
+  background-color: #007bff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.project-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.project-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.view-analysis-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.view-analysis-btn:hover {
+  color: #0056b3;
+}
+
+.menu-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.menu-btn:hover {
+  background-color: #f8f9fa;
+  color: #333;
+}

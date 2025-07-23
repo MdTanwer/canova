@@ -1,0 +1,106 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #fefdfd;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.sidebar-header {
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.home-logo {
+  color: #151515;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #b3b3b3;
+  font-family: "Inter";
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.sidebar-item {
+  width: 85%;
+  display: flex;
+  align-items: center;
+  margin: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.sidebar-item:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+.sidebar-item.active {
+  background-color: #bfdaf5;
+  color: #000000;
+}
+
+.sidebar-icon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.sidebar-label {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: left;
+  vertical-align: middle;
+  width: 90%;
+}
+
+.sidebar-footer {
+  padding: 16px;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.profile-section:hover {
+  background-color: #e9ecef;
+}
+
+.profile-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: left;
+  vertical-align: middle;
+  color: #666;
+}

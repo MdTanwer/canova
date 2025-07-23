@@ -13,3 +13,10 @@ export interface FormErrors {
   confirmPassword?: string;
   otp?: string;
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  type: "form" | "project";
+  isShared?: boolean;
+}
