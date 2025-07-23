@@ -12,7 +12,7 @@ import Home from "./pages/Home/Home";
 import { useAuth } from "./context/useAuth";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
-
+import SignUp from "./pages/siginup/siginUp";
 // ProtectedRoute component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -45,6 +45,7 @@ function App() {
             }
           />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUp />} />
         </Routes>
       </Router>
     </AuthProvider>

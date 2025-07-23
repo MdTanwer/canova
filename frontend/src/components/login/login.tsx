@@ -116,7 +116,7 @@ const Login: React.FC<LoginProps> = ({
         <div className="form-footer">
           <p className="footer-text">
             Don't have an account?{" "}
-            <a href="/siginup" className="signin-link">
+            <a href="/signup" className="signin-link">
               Sign up
             </a>
           </p>

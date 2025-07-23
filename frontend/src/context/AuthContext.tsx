@@ -17,7 +17,11 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
 }
@@ -70,11 +74,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken("cookie");
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ) => {
     const res = await api.post<AuthResponse>(
       "/users/register",
       {
-        name,
+        username,
         email,
         password,
       },

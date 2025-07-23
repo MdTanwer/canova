@@ -3,18 +3,22 @@ import "./siginUp.css";
 import type { FormData, FormErrors } from "../../types/types";
 import vector from "../../assets/Logo.svg";
 import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const SignUp: React.FC = () => {
   const { register } = useAuth();
-  const [showCreatePassword, setShowCreatePassword] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
-    name: "",
+    username: "",
     email: "",
-    createPassword: "",
+    password: "",
     confirmPassword: "",
   });
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -27,22 +31,22 @@ const SignUp: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
     }
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    if (!formData.createPassword) {
-      newErrors.createPassword = "Password is required";
-    } else if (formData.createPassword.length < 8) {
-      newErrors.createPassword = "Password must be at least 8 characters";
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.createPassword !== formData.confirmPassword) {
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
     setErrors(newErrors);
@@ -53,16 +57,23 @@ const SignUp: React.FC = () => {
     if (e) e.preventDefault();
     if (!validateForm()) return;
     try {
-      await register(formData.name, formData.email, formData.createPassword);
-      // Redirect to home or login page if needed
-    } catch (err: any) {
-      setApiError(err.response?.data?.message || "Registration failed");
+      await register(formData.username, formData.email, formData.password);
+      toast.success("Registration successful! Please login.");
+      navigate("/login");
+    } catch (err: unknown) {
+      let message = "Registration failed";
+      if (err && typeof err === "object" && "response" in err) {
+        // @ts-expect-error: response may exist on error
+        message = err.response?.data?.message || message;
+      }
+      setApiError(message);
+      toast.error(message);
     }
   };
 
-  const togglePasswordVisibility = (field: "create" | "confirm"): void => {
-    if (field === "create") {
-      setShowCreatePassword(!showCreatePassword);
+  const togglePasswordVisibility = (field: "password" | "confirm"): void => {
+    if (field === "password") {
+      setShowPassword(!showPassword);
     } else {
       setShowConfirmPassword(!showConfirmPassword);
     }
@@ -115,22 +126,22 @@ const SignUp: React.FC = () => {
         </div>
         {/* Form Fields */}
         <form className="form-fields" onSubmit={handleSubmit}>
-          {/* Name Field */}
+          {/* Username Field */}
           <div className="field-group">
-            <label htmlFor="name" className="field-label">
-              Name
+            <label htmlFor="username" className="field-label">
+              Username
             </label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleInputChange}
-              className={`form-input ${errors.name ? "input-error" : ""}`}
-              placeholder="Enter your name"
+              className={`form-input ${errors.username ? "input-error" : ""}`}
+              placeholder="Enter your username"
             />
-            {errors.name && (
-              <span className="error-message">{errors.name}</span>
+            {errors.username && (
+              <span className="error-message">{errors.username}</span>
             )}
           </div>
           {/* Email Field */}
@@ -151,34 +162,34 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.email}</span>
             )}
           </div>
-          {/* Create Password Field */}
+          {/* Password Field */}
           <div className="field-group">
-            <label htmlFor="createPassword" className="field-label">
-              Create Password
+            <label htmlFor="password" className="field-label">
+              Password
             </label>
             <div className="password-input-wrapper">
               <input
-                type={showCreatePassword ? "text" : "password"}
-                id="createPassword"
-                name="createPassword"
-                value={formData.createPassword}
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
                 onChange={handleInputChange}
                 placeholder="At least 8 characters"
                 className={`form-input password-input ${
-                  errors.createPassword ? "input-error" : ""
+                  errors.password ? "input-error" : ""
                 }`}
               />
               <button
                 type="button"
-                onClick={() => togglePasswordVisibility("create")}
+                onClick={() => togglePasswordVisibility("password")}
                 className="password-toggle"
                 aria-label="Toggle password visibility"
               >
-                <EyeIcon isVisible={showCreatePassword} />
+                <EyeIcon isVisible={showPassword} />
               </button>
             </div>
-            {errors.createPassword && (
-              <span className="error-message">{errors.createPassword}</span>
+            {errors.password && (
+              <span className="error-message">{errors.password}</span>
             )}
           </div>
           {/* Confirm Password Field */}
