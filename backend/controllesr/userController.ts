@@ -11,6 +11,10 @@ import {
   generateSecureToken,
   verifyOTPToken,
 } from "../utils/tokenGenerator";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
+
+//register user
 export const registerUser = async (
   req: Request,
   res: Response,
@@ -49,9 +53,6 @@ export const registerUser = async (
     next(createError("Registration failed", 500));
   }
 };
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production";
-
 // Login function
 export const loginUser = async (
   req: Request,
@@ -120,10 +121,6 @@ export const sendOTP = async (
       return next(createError("User not found", 404));
     }
 
-    if (user.isVerified) {
-      return next(createError("Email is already verified", 400));
-    }
-
     // Generate OTP and secure token
     const otp = generateOTP();
     const otpToken = generateSecureToken();
@@ -171,19 +168,16 @@ export const verifyOTP = async (
     const cookieToken = req.cookies.otp_verification_token as string;
 
     if (!otp) {
-      res.status(400).json({
-        success: false,
-        message: "OTP is required",
-      });
-      return;
+      return next(createError("OTP is required", 400));
     }
 
     if (!cookieToken) {
-      res.status(400).json({
-        success: false,
-        message: "No verification session found. Please request a new OTP",
-      });
-      return;
+      return next(
+        createError(
+          "No verification session found. Please request a new OTP",
+          400
+        )
+      );
     }
 
     // Verify JWT token from cookie
@@ -192,11 +186,12 @@ export const verifyOTP = async (
       tokenPayload = verifyOTPToken(cookieToken);
     } catch (error) {
       res.clearCookie("otp_verification_token");
-      res.status(400).json({
-        success: false,
-        message: "Verification session expired. Please request a new OTP",
-      });
-      return;
+      return next(
+        createError(
+          "Verification session expired. Please request a new OTP",
+          400
+        )
+      );
     }
 
     const { email } = tokenPayload;
@@ -206,44 +201,31 @@ export const verifyOTP = async (
 
     if (!user) {
       res.clearCookie("otp_verification_token");
-      res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-      return;
+      return next(createError("User not found", 404));
     }
 
     // Check if OTP token exists and hasn't expired
     if (!user.otpToken || !user.otpExpires) {
       res.clearCookie("otp_verification_token");
-      res.status(400).json({
-        success: false,
-        message: "No active OTP session. Please request a new OTP",
-      });
-      return;
+      return next(
+        createError("No active OTP session. Please request a new OTP", 400)
+      );
     }
 
     if (user.otpExpires < new Date()) {
       res.clearCookie("otp_verification_token");
-      res.status(400).json({
-        success: false,
-        message: "OTP has expired. Please request a new one",
-      });
-      return;
+      return next(
+        createError("OTP has expired. Please request a new one", 400)
+      );
     }
 
-    console.log("user.otp", user.otp, otp);
-    // Verify OTP
     if (user.otp !== Number(otp)) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-      return;
+      res.clearCookie("otp_verification_token");
+      return next(createError("Invalid OTP", 400));
     }
 
     // Mark user as verified and clear OTP data
-    user.isVerified = true;
+
     user.otp = 0;
     user.otpToken = "";
     user.otpExpires = new Date();
@@ -267,10 +249,7 @@ export const verifyOTP = async (
     });
   } catch (error) {
     console.error("Verify OTP error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to verify OTP",
-    });
+    return next(createError("Failed to verify OTP", 500));
   }
 };
 
@@ -297,7 +276,7 @@ export const setPassword = async (
     }
 
     // Validate password strength
-    if (password.length < 6) {
+    if (password.length < 8) {
       return next(
         createError("Password must be at least 6 characters long", 400)
       );
@@ -325,12 +304,6 @@ export const setPassword = async (
     if (!user) {
       res.clearCookie("password_setup_token");
       return next(createError("User not found", 404));
-    }
-
-    // Check if user is verified
-    if (!user.isVerified) {
-      res.clearCookie("password_setup_token");
-      return next(createError("Please verify your email first", 400));
     }
 
     // Hash password
@@ -363,19 +336,16 @@ export const getme = async (
     const userId = await User.findById(req.user?._id);
 
     if (!userId) {
-      return res.status(404).json({
-        status: "fail",
-        message: "User not found",
-      });
+      return next(createError("User not found", 404));
     }
 
     const user = await User.findOne({ email: userId.email });
 
     res.status(200).json({
-      status: "success",
+      success: true,
       user,
     });
   } catch (error) {
-    next(error);
+    next(createError("Failed to get user", 500));
   }
 };

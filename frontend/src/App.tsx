@@ -14,7 +14,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import SignUp from "./pages/siginup/siginUp";
 import VerifyOtp from "./components/forgotpassord/verifyotp";
-// import SetPassword from "./components/forgotpassord/setpassword";
+import SetPasswordPage from "./pages/setPassword/setPasswordPage";
 import SendOtp from "./components/forgotpassord/sendotp";
 // ProtectedRoute component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -50,7 +50,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
-          {/* <Route path="/set-password" element={<SetPassword />} /> */}
+          <Route path="/set-password" element={<SetPasswordPage />} />
           <Route path="/forgot-password" element={<SendOtp />} />
         </Routes>
       </Router>
