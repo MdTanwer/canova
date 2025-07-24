@@ -5,54 +5,59 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
   position: relative;
-  transition: all 0.2s ease;
   min-height: 160px;
   justify-content: space-between;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 .project-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #007bff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 
 .project-icon {
-  width: 48px;
-  height: 48px;
-  background-color: #007bff;
-  border-radius: 8px;
+  width: 90px;
+  height: 90px;
+  background-color: #69b5f8;
+  border-radius: 16px;
+  font-size: 24px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  margin-bottom: 16px;
 }
 
-.project-content {
-  flex: 1;
+.icon-container {
+  width: 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
 }
 
+.project-content {
+  display: flex;
+  justify-content: left;
+}
+
 .project-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #333;
   margin: 0 0 12px 0;
+  font-family: "Inter", sans-serif;
 }
 
 .view-analysis-btn {
   background: none;
   border: none;
   color: #007bff;
-  font-size: 12px;
+  font-size: 16px;
   cursor: pointer;
   padding: 4px 0;
-  text-decoration: underline;
   transition: color 0.2s ease;
+  font-family: "Inter", sans-serif;
 }
 
 .view-analysis-btn:hover {
@@ -61,7 +66,7 @@
 
 .menu-btn {
   position: absolute;
-  top: 12px;
+  bottom: 12px;
   right: 12px;
   background: none;
   border: none;
@@ -71,6 +76,9 @@
   padding: 4px;
   border-radius: 4px;
   transition: all 0.2s ease;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 30px;
 }
 
 .menu-btn:hover {

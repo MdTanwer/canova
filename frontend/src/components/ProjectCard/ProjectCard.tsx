@@ -1,6 +1,8 @@
 import React from "react";
 import "../../styles/ProjectCard/ProjectCard.css";
 import type { Project } from "../../types/types";
+import form from "../../assets/fe_editbigsvg.svg";
+import file from "../../assets/filebig.svg";
 
 interface ProjectCardProps {
   project: Project;
@@ -15,18 +17,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const getIcon = () => {
     if (project.type === "form") {
-      return "📝";
+      return <img src={form} alt="file" />;
     }
-    return "📁";
+    return <img src={file} alt="file" />;
   };
 
   return (
     <div className="project-card">
-      <div className="project-icon">{getIcon()}</div>
-
+      <h3 className="project-name">{project.name}</h3>
+      <div className="icon-container">
+        {" "}
+        <div className="project-icon">{getIcon()}</div>
+      </div>
       <div className="project-content">
-        <h3 className="project-name">{project.name}</h3>
-
         <button
           className="view-analysis-btn"
           onClick={() => onViewAnalysis(project.id)}
@@ -34,7 +37,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           View Analysis
         </button>
       </div>
-
       <button className="menu-btn" onClick={() => onMenuClick(project.id)}>
         ⋮
       </button>
