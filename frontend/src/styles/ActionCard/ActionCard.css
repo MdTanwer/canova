@@ -11,18 +11,17 @@
   transition: all 0.2s ease;
   min-height: 140px;
   justify-content: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
 .action-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #007bff;
-  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .action-icon {
   width: 48px;
   height: 48px;
-  background-color: #007bff;
+  background-color: #69b5f8;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -38,14 +37,15 @@
 
 .action-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   color: #333;
   margin: 0 0 8px 0;
+  font-family: "Inter", sans-serif;
 }
 
 .action-subtitle {
   font-size: 14px;
-  color: #666;
-  margin: 0;
-  line-height: 1.4;
+  color: #424242;
+
+  font-family: "Inter", sans-serif;
 }

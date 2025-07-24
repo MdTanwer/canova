@@ -16,7 +16,9 @@ const ActionCard: React.FC<ActionCardProps> = ({
 }) => {
   return (
     <div className="action-card" onClick={onClick}>
-      <div className="action-icon">{icon}</div>
+      <div className="action-icon">
+        <img src={icon} alt="icon" />
+      </div>
 
       <div className="action-content">
         <h3 className="action-title">{title}</h3>

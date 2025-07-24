@@ -4,6 +4,8 @@ import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import ActionCard from "../../components/ActionCard/ActionCard";
 import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
+import file from "../../assets/fe_edit.svg";
+import form from "../../assets/fe_edit (1).svg";
 
 const Home: React.FC = () => {
   const [activeItem, setActiveItem] = useState("home");
@@ -47,26 +49,26 @@ const Home: React.FC = () => {
   return (
     <div className="dashboard">
       <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
-
       <main className="main-content">
-        <div className="content-wrapper">
-          <header className="page-header">
+        <header className="header-container">
+          <div className="page-header">
             <h1 className="page-title">Welcome to CANOVA</h1>
-          </header>
-
+          </div>
+        </header>
+        <div className="content-wrapper">
           {/* Action Cards */}
           <div className="actions-section">
             <div className="actions-grid">
               <ActionCard
                 title="Start from scratch"
                 subtitle="Create your first Project now"
-                icon="📝"
+                icon={file}
                 onClick={handleStartFromScratch}
               />
               <ActionCard
                 title="Create Form"
                 subtitle="Create your first Form now"
-                icon="📋"
+                icon={form}
                 onClick={handleCreateForm}
               />
             </div>
