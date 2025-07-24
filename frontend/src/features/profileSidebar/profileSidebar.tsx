@@ -4,7 +4,6 @@ import "../../styles/home/Sidebar.css";
 import vector from "../../assets/Logo.svg";
 import home from "../../assets/home.svg";
 import anaylytics from "../../assets/project.svg";
-import project from "../../assets/Group.svg";
 import avatar from "../../assets/Layer 2.svg";
 
 interface SidebarProps {
@@ -12,12 +11,21 @@ interface SidebarProps {
   onItemClick: (item: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
+const ProfileSidebar: React.FC<SidebarProps> = ({
+  activeItem,
+  onItemClick,
+}) => {
   const navigate = useNavigate();
   const menuItems = [
-    { id: "home", label: "Home", icon: home, path: "/" },
-    { id: "analysis", label: "Analysis", icon: anaylytics, path: "/analytics" },
-    { id: "projects", label: "Projects", icon: project, path: "/projects" },
+    { id: "myProfile", label: "My Profile", icon: home, path: "/profile" },
+
+    {
+      id: "Settings",
+      label: "Settings",
+      icon: anaylytics,
+      path: "/profile-settings",
+    },
+    { id: "logout", label: "Logout", icon: anaylytics, path: "" },
   ];
 
   return (
@@ -42,16 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
           </button>
         ))}
       </nav>
-
-      <div className="sidebar-footer">
-        <div className="profile-section" onClick={() => navigate("/profile")}>
-          <img src={avatar} alt="avater" className="sidebar-icon" />
-
-          <span className="profile-text">Profile</span>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default Sidebar;
+export default ProfileSidebar;

@@ -16,6 +16,10 @@ import SignUp from "./pages/siginup/siginUp";
 import VerifyOtp from "./components/forgotpassord/verifyotp";
 import SetPasswordPage from "./pages/setPassword/setPasswordPage";
 import SendOtp from "./components/forgotpassord/sendotp";
+import AnalyticsPage from "./pages/analyticsPage/analyticsPage";
+import ProjectPage from "./pages/projectPage/projectPage";
+import ProfilePage from "./pages/profilePage/profilepage";
+import SettingPage from "./pages/settigngPage/settingPage";
 // ProtectedRoute component
 // function ProtectedRoute({ children }: { children: React.ReactNode }) {
 //   const { user, loading } = useAuth();
@@ -44,9 +48,16 @@ function App() {
             element={
               // <ProtectedRoute>
               <Home />
+
               // </ProtectedRoute>
             }
           />
+
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/projects" element={<ProjectPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="profile-settings" element={<SettingPage />} />
+
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
