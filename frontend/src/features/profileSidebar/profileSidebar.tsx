@@ -4,7 +4,6 @@ import "../../styles/home/Sidebar.css";
 import vector from "../../assets/Logo.svg";
 import home from "../../assets/home.svg";
 import anaylytics from "../../assets/project.svg";
-import avatar from "../../assets/Layer 2.svg";
 
 interface SidebarProps {
   activeItem: string;
