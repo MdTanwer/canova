@@ -24,22 +24,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   return (
     <div className="project-card">
-      <h3 className="project-name">{project.name}</h3>
+      <h3 className="project-name">
+        {project.type == "form" ? project.name : ""}
+      </h3>
       <div className="icon-container">
         {" "}
         <div className="project-icon">{getIcon()}</div>
       </div>
-      <div className="project-content">
+      <div className="project-content-container">
         <button
           className="view-analysis-btn"
           onClick={() => onViewAnalysis(project.id)}
         >
           View Analysis
         </button>
+
+        <button className="menu-btn" onClick={() => onMenuClick(project.id)}>
+          ⋮
+        </button>
       </div>
-      <button className="menu-btn" onClick={() => onMenuClick(project.id)}>
-        ⋮
-      </button>
     </div>
   );
 };
