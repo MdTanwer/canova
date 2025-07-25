@@ -1,0 +1,149 @@
+.form-sidebar {
+  width: 180px;
+  height: 100vh;
+  background-color: #fefdfd;
+  /* border-right: 2px solid #696969; */
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.form-sidebar-header {
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 10px;
+}
+
+.form-home-logo {
+  /* color: #151515; */
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+}
+
+.form-sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #b3b3b3;
+  font-family: "Inter";
+}
+
+.form-sidebar-nav {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.form-sidebar-item {
+  width: 85%;
+  display: flex;
+  align-items: center;
+  margin: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  padding: 10px;
+  border-radius: 8px;
+  justify-content: center;
+}
+
+.form-sidebar-item:hover {
+  background-color: #e9ecef;
+  color: #333;
+}
+
+.form-sidebar-item.active {
+  background-color: #bfdaf5;
+  color: #000000;
+}
+
+.form-sidebar-icon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.form-sidebar-label {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: center;
+  vertical-align: middle;
+  width: 90%;
+}
+
+.form-sidebar-footer {
+  padding: 16px;
+}
+
+.form-profile-section {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.form-profile-section:hover {
+  background-color: #e9ecef;
+}
+
+.form-profile-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: left;
+  vertical-align: middle;
+  color: #666;
+}
+
+.form-sidebar-add-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 80%;
+  margin: auto;
+  padding: 12px 16px;
+  margin-top: 8px;
+  border: 1px dashed #ccc;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+.form-sidebar-add-page:hover {
+  background: #f8f8f8;
+  border-color: #999;
+  color: #333;
+}
+
+.form-sidebar-add-page:active {
+  transform: translateY(1px);
+}
+.form-add-icon {
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.form-add-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: normal;
+  letter-spacing: 0;
+  text-align: left;
+  vertical-align: middle;
+  color: #666;
+}
