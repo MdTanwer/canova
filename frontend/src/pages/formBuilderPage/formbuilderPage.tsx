@@ -6,6 +6,7 @@ import "../../styles/home/Dashboard.css";
 import file from "../../assets/fe_edit.svg";
 import form from "../../assets/fe_edit (1).svg";
 import NavigationSidebar from "../../components/formbuilder/NavigationSidebar";
+import FormHeader from "../../components/formbuilder/FormHeader";
 
 const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("home");
@@ -53,12 +54,8 @@ const FormBuilderPage: React.FC = () => {
         onItemClick={handleItemClick}
       />
       <main className="main-content">
-        <header className="header-container">
-          <div className="page-header">
-            <h1 className="page-title">Welcome to CANOVA</h1>
-          </div>
-        </header>
         <div className="content-wrapper">
+          <FormHeader />
           {/* Action Cards */}
           <div className="actions-section">
             <div className="actions-grid">
