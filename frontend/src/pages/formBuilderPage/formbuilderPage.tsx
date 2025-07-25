@@ -44,10 +44,7 @@ const FormBuilderPage: React.FC = () => {
         <div className="form-content-wrapper">
           <FormHeader />
           <div className="form-builder-content">
-            <div className="form-builder-main">
-              main ojifoif br <br />
-              dkdfhiekfjcontent
-            </div>
+            <div className="form-builder-main"></div>
             <div>
               <RightSidebar
                 onAddQuestion={handleAddQuestion}
