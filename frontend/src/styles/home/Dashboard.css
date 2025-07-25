@@ -7,13 +7,13 @@
 
 .main-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 180px;
   padding: 0;
   background-color: #fefdfd;
   position: relative;
   height: 99vh;
   overflow: hidden;
-  border: 2.5px solid #696969;
+  border: 2.5px solid #e0e0e0;
   border-radius: 10px;
 }
 

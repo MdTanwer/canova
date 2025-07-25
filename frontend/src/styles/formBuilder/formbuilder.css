@@ -1,0 +1,36 @@
+.form-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+.form-main-content {
+  flex: 1;
+  margin-left: 180px;
+  padding: 0;
+  background-color: #fefdfd;
+  position: relative;
+  height: 99vh;
+  overflow: hidden;
+  border: 2.5px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.form-content-wrapper {
+  margin: 0 auto;
+  padding: 0px 0px;
+  padding-top: 82px; /* header height + spacing */
+  height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.form-builder-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.form-builder-main {
+  flex: 1;
+}
