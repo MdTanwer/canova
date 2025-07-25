@@ -20,6 +20,7 @@ const FormSchema = new Schema<IForm>(
       type: String,
       required: true,
       trim: true,
+      unique: true,
     },
     description: {
       type: String,
@@ -39,7 +40,7 @@ const FormSchema = new Schema<IForm>(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
     projectId: {
       type: Schema.Types.ObjectId,

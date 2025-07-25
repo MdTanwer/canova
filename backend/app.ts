@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import bodyParser from "body-parser";
 import { userRouter } from "./routers/userRouter";
+import { projectRouter } from "./routers/ProjectRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 import connectDB from "./utils/db";
 import cookieParser from "cookie-parser";
@@ -27,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/users", userRouter);
+app.use("/api/project", projectRouter);
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {

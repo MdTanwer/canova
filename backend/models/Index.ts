@@ -9,6 +9,6 @@ export {
 } from "./Question";
 export { Section, ISection, ISectionSettings } from "./Section";
 export { Page, IPage, IPageCondition } from "./Page";
-export { Form, IForm } from "./Form";
+export { Form, IForm } from "./formbuilderForm";
 export { Project, IProject } from "./Project";
 export { FormResponse, IFormResponse, IAnswerResponse } from "./FormResponse";
