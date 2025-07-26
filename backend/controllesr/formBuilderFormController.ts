@@ -24,10 +24,22 @@ export const createRandomForm = async (
       version: 1,
     });
 
+    // Create the first page (page01) for the new form
+    const page = await Page.create({
+      title: "page01",
+      order: 1,
+      formId: form._id,
+      // createdBy: ... // add if you have user context
+    });
+    // Optionally, add the page to the form's PageIds array
+    form.PageIds = [page._id as any];
+    await form.save();
+
     res.status(201).json({
       success: true,
-      message: "Form created successfully",
+      message: "Form and first page created successfully",
       form,
+      page,
     });
   } catch (error) {
     next(createError("Failed to create form", 500));
