@@ -4,6 +4,7 @@ export interface IProject extends Document {
   _id: string;
   name: string;
   description?: string;
+  type: string;
   forms: Schema.Types.ObjectId[];
   createdBy: Schema.Types.ObjectId;
   collaborators?: Schema.Types.ObjectId[];
@@ -17,6 +18,10 @@ const ProjectSchema = new Schema<IProject>(
       type: String,
       required: true,
       trim: true,
+    },
+    type: {
+      type: String,
+      default: "project",
     },
     description: {
       type: String,

@@ -6,6 +6,7 @@ import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
 import file from "../../assets/fe_edit.svg";
 import form from "../../assets/fe_edit (1).svg";
+import { createProjectWithForm } from "../../api/projectApi";
 
 const ProjectPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("projects");
@@ -36,9 +37,17 @@ const ProjectPage: React.FC = () => {
     // Implement menu actions
   };
 
-  const handleStartFromScratch = () => {
-    console.log("Start from scratch");
-    // Implement create new project flow
+  const handleStartFromScratch = async () => {
+    try {
+      const data = await createProjectWithForm({
+        formName: "form1",
+        projectName: "project1",
+      });
+      console.log("Created project and form:", data);
+      // Optionally, update state or navigate
+    } catch (error: any) {
+      console.error(error.message);
+    }
   };
 
   const handleCreateForm = () => {

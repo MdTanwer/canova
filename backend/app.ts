@@ -8,6 +8,7 @@ import { projectRouter } from "./routers/ProjectRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 import connectDB from "./utils/db";
 import cookieParser from "cookie-parser";
+import { formRouter } from "./routers/formRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/project", projectRouter);
+app.use("/api/form", formRouter);
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {

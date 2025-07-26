@@ -60,3 +60,58 @@ export const createProjectWithForm = async (
     next(createError("Failed to create or link project and form", 500));
   }
 };
+
+export const renameProject = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { projectId, newName } = req.body;
+    if (!projectId || !newName) {
+      return next(createError("projectId and newName are required", 400));
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return next(createError("Project not found", 404));
+    }
+
+    project.name = newName;
+    await project.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Project renamed successfully",
+      project,
+    });
+  } catch (error) {
+    next(createError("Failed to rename project", 500));
+  }
+};
+
+export const deleteProject = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { projectId } = req.body;
+    if (!projectId) {
+      return next(createError("projectId is required", 400));
+    }
+
+    const project = await Project.findByIdAndDelete(projectId);
+    if (!project) {
+      return next(createError("Project not found", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Project deleted successfully",
+      project,
+    });
+  } catch (error) {
+    next(createError("Failed to delete project", 500));
+  }
+};
