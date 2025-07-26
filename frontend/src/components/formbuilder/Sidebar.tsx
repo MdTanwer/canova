@@ -8,33 +8,15 @@ import add from "../../assets/Home (1).svg";
 interface SidebarProps {
   activeItem: string;
   onItemClick: (item: string) => void;
+  pages: { _id: string; title: string }[];
 }
 
 const NavigationSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
+  pages,
 }) => {
   const navigate = useNavigate();
-  const [menuItems, setMenuItems] = useState([
-    { id: "page1", label: "Page 01" },
-    { id: "page2", label: "Page 02" },
-    { id: "page3", label: "Page 03" },
-  ]);
-
-  const addNewPage = () => {
-    const newPageNumber = menuItems.length + 1;
-    const newPageId = `page${newPageNumber}`;
-    const newPageLabel = `Page ${newPageNumber.toString().padStart(2, "0")}`;
-
-    const newPage = {
-      id: newPageId,
-      label: newPageLabel,
-    };
-
-    setMenuItems([...menuItems, newPage]);
-    // Automatically select the new page
-    onItemClick(newPageId);
-  };
 
   return (
     <div className="form-sidebar">
@@ -44,21 +26,27 @@ const NavigationSidebar: React.FC<SidebarProps> = ({
       </div>
 
       <nav className="form-sidebar-nav">
-        {menuItems.map((item) => (
+        {pages.map((page) => (
           <button
-            key={item.id}
+            key={page._id}
             className={`form-sidebar-item ${
-              activeItem === item.id ? "active" : ""
+              activeItem === page._id ? "active" : ""
             }`}
             onClick={() => {
-              onItemClick(item.id);
+              onItemClick(page._id);
             }}
           >
-            <span className="form-sidebar-label">{item.label}</span>
+            <span className="form-sidebar-label">{page.title}</span>
           </button>
         ))}
 
-        <button className="form-sidebar-add-page" onClick={addNewPage}>
+        {/* <button className="form-sidebar-add-page" onClick={addNewPage}>
+          <span className="form-add-icon">
+            <img src={add} alt="" />
+          </span>
+          <span className="form-add-text">Add new Page</span>
+        </button> */}
+        <button className="form-sidebar-add-page">
           <span className="form-add-icon">
             <img src={add} alt="" />
           </span>

@@ -1,13 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import "../../styles/formBuilder/formbuilder.css";
-import Sidebar from "../../components/formbuilder/sidebar";
+import Sidebar from "../../components/formbuilder/Sidebar";
 import FormHeader from "../../components/formbuilder/FormHeader";
 import RightSidebar from "../../components/formbuilder/RightSidebar";
+import { getPages } from "../../api/formBuilderApi";
+
+interface Page {
+  _id: string;
+  title: string;
+}
 
 const FormBuilderPage: React.FC = () => {
-  const [activeItem, setActiveItem] = useState("home");
+  const [activeItem, setActiveItem] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#646464");
   const [sectionColor, setSectionColor] = useState("#646464");
+  const [allPages, setAllPages] = useState<Page[]>([]);
+  const { id: formId } = useParams<{ id: string }>();
+
+  useEffect(() => {
+    const fetchPages = async () => {
+      if (!formId) return;
+      try {
+        const result = (await getPages(formId)) as { pages: Page[] };
+        if (result && result.pages) {
+          setAllPages(result.pages);
+          if (result.pages.length > 0) {
+            setActiveItem(result.pages[0]._id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch pages:", error);
+      }
+    };
+    fetchPages();
+  }, [formId]);
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
@@ -39,7 +66,11 @@ const FormBuilderPage: React.FC = () => {
 
   return (
     <div className="form-container">
-      <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
+      <Sidebar
+        activeItem={activeItem}
+        onItemClick={handleItemClick}
+        pages={allPages}
+      />
       <main className="form-main-content">
         <div className="form-content-wrapper">
           <FormHeader />

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
-import { Project, Form } from "../models/Index";
+import { Project, Form, Page } from "../models/Index";
 
 export const createProjectWithForm = async (
   req: Request,
@@ -49,11 +49,27 @@ export const createProjectWithForm = async (
       await form.save();
     }
 
+    // Create a new page named 'page01' linked to the form
+    const page = await Page.create({
+      title: "page01",
+      order: 1,
+      formId: form._id,
+      // createdBy: form.createdBy, // or userId if available
+    });
+    // Optionally, add the page to the form's PageIds array
+    if (form.PageIds) {
+      form.PageIds.push(page._id as any);
+    } else {
+      form.PageIds = [page._id as any];
+    }
+    await form.save();
+
     res.status(201).json({
       success: true,
-      message: "Project and form linked/created successfully",
+      message: "Project, form, and page created successfully",
       project,
       form,
+      page,
     });
   } catch (error) {
     console.log("error", error);

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
-import { Form } from "../models/Index";
+import { Form, Page } from "../models/Index";
 
 export const createRandomForm = async (
   req: Request,
@@ -31,5 +31,25 @@ export const createRandomForm = async (
     });
   } catch (error) {
     next(createError("Failed to create form", 500));
+  }
+};
+
+export const getPagesByFormId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    if (!formId) {
+      return next(createError("formId is required", 400));
+    }
+    const pages = await Page.find({ formId });
+    res.status(200).json({
+      success: true,
+      pages,
+    });
+  } catch (error) {
+    next(createError("Failed to fetch pages", 500));
   }
 };

@@ -92,7 +92,7 @@ const PageSchema = new Schema<IPage>(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
   },
   {
