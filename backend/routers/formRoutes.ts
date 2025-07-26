@@ -4,6 +4,7 @@ import {
   createRandomForm,
   getPagesByFormId,
 } from "../controllesr/formBuilderFormController";
+import { createNextPage } from "../controllesr/formBuilderProjectController";
 
 export const formRouter = express.Router();
 
@@ -11,3 +12,4 @@ export const formRouter = express.Router();
 formRouter.post("/", createRandomForm);
 
 formRouter.get("/pages/:formId", getPagesByFormId);
+formRouter.post("/add-page/:formId", createNextPage);

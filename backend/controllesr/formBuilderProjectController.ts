@@ -131,3 +131,49 @@ export const deleteProject = async (
     next(createError("Failed to delete project", 500));
   }
 };
+
+export const createNextPage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    if (!formId) {
+      return next(createError("formId is required", 400));
+    }
+
+    // Find all pages for the form, sorted by order
+    const pages = await Page.find({ formId }).sort({ order: 1 });
+
+    // Determine the next order and title
+    const nextOrder = pages.length + 1;
+    const nextTitle = `page${nextOrder.toString().padStart(2, "0")}`;
+
+    // Create the new page
+    const newPage = await Page.create({
+      title: nextTitle,
+      order: nextOrder,
+      formId,
+      // createdBy: ... // add if you have user context
+    });
+
+    // Optionally, add the new page to the form's PageIds array
+    const form = await Form.findById(formId);
+    if (form) {
+      if (form.PageIds) {
+        form.PageIds.push(newPage._id as any);
+      } else {
+        form.PageIds = [newPage._id as any];
+      }
+      await form.save();
+    }
+
+    res.status(201).json({
+      success: true,
+      page: newPage,
+    });
+  } catch (error) {
+    next(createError("Failed to create next page", 500));
+  }
+};

@@ -23,3 +23,7 @@ export const getPages = async (formId: string) => {
   const response = await api.get(`/form/pages/${formId}`);
   return response.data;
 };
+export const createNextPages = async (formId: string) => {
+  const response = await api.post(`/form/add-page/${formId}`);
+  return response.data;
+};

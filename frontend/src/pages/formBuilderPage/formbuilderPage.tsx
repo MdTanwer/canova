@@ -4,7 +4,7 @@ import "../../styles/formBuilder/formbuilder.css";
 import Sidebar from "../../components/formbuilder/Sidebar";
 import FormHeader from "../../components/formbuilder/FormHeader";
 import RightSidebar from "../../components/formbuilder/RightSidebar";
-import { getPages } from "../../api/formBuilderApi";
+import { getPages, createNextPages } from "../../api/formBuilderApi";
 
 interface Page {
   _id: string;
@@ -63,6 +63,18 @@ const FormBuilderPage: React.FC = () => {
   const handleAddSections = () => {
     console.log("Add Sections clicked");
   };
+  const createNextPage = async () => {
+    if (!formId) return;
+    try {
+      const result = (await createNextPages(formId)) as { page: Page };
+      if (result && result.page) {
+        setAllPages((prev) => [...prev, result.page]);
+        setActiveItem(result.page._id);
+      }
+    } catch (error) {
+      console.error("Failed to create next page:", error);
+    }
+  };
 
   return (
     <div className="form-container">
@@ -70,6 +82,7 @@ const FormBuilderPage: React.FC = () => {
         activeItem={activeItem}
         onItemClick={handleItemClick}
         pages={allPages}
+        createNextPage={createNextPage}
       />
       <main className="form-main-content">
         <div className="form-content-wrapper">

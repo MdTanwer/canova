@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/formBuilder/NavigationSidebar.css";
 import vector from "../../assets/Logo.svg";
@@ -9,12 +9,14 @@ interface SidebarProps {
   activeItem: string;
   onItemClick: (item: string) => void;
   pages: { _id: string; title: string }[];
+  createNextPage: () => void;
 }
 
 const NavigationSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
   pages,
+  createNextPage,
 }) => {
   const navigate = useNavigate();
 
@@ -46,7 +48,7 @@ const NavigationSidebar: React.FC<SidebarProps> = ({
           </span>
           <span className="form-add-text">Add new Page</span>
         </button> */}
-        <button className="form-sidebar-add-page">
+        <button className="form-sidebar-add-page" onClick={createNextPage}>
           <span className="form-add-icon">
             <img src={add} alt="" />
           </span>
