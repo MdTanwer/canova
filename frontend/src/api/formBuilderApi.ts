@@ -27,3 +27,8 @@ export const createNextPages = async (formId: string) => {
   const response = await api.post(`/form/add-page/${formId}`);
   return response.data;
 };
+
+export const getFormNmae = async (formId: string) => {
+  const response = await api.get(`/form/${formId}`);
+  return response.data;
+};

@@ -53,3 +53,26 @@ export const getPagesByFormId = async (
     next(createError("Failed to fetch pages", 500));
   }
 };
+
+export const getFormNameById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    if (!formId) {
+      return next(createError("formId is required", 400));
+    }
+    const form = await Form.findById(formId);
+    if (!form) {
+      return next(createError("Form not found", 404));
+    }
+    res.status(200).json({
+      success: true,
+      formName: form.title,
+    });
+  } catch (error) {
+    next(createError("Failed to fetch form name", 500));
+  }
+};

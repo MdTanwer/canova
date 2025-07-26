@@ -4,7 +4,11 @@ import "../../styles/formBuilder/formbuilder.css";
 import Sidebar from "../../components/formbuilder/Sidebar";
 import FormHeader from "../../components/formbuilder/FormHeader";
 import RightSidebar from "../../components/formbuilder/RightSidebar";
-import { getPages, createNextPages } from "../../api/formBuilderApi";
+import {
+  getPages,
+  createNextPages,
+  getFormNmae,
+} from "../../api/formBuilderApi";
 
 interface Page {
   _id: string;
@@ -16,6 +20,7 @@ const FormBuilderPage: React.FC = () => {
   const [backgroundColor, setBackgroundColor] = useState("#646464");
   const [sectionColor, setSectionColor] = useState("#646464");
   const [allPages, setAllPages] = useState<Page[]>([]);
+  const [formTitle, setFormTitle] = useState<string>("");
   const { id: formId } = useParams<{ id: string }>();
 
   useEffect(() => {
@@ -34,6 +39,21 @@ const FormBuilderPage: React.FC = () => {
       }
     };
     fetchPages();
+  }, [formId]);
+
+  useEffect(() => {
+    const fetchFormTitle = async () => {
+      if (!formId) return;
+      try {
+        const result = (await getFormNmae(formId)) as { formName: string };
+        if (result && result.formName) {
+          setFormTitle(result.formName);
+        }
+      } catch (error) {
+        console.error("Failed to fetch form name:", error);
+      }
+    };
+    fetchFormTitle();
   }, [formId]);
 
   const handleItemClick = (item: string) => {
@@ -86,7 +106,7 @@ const FormBuilderPage: React.FC = () => {
       />
       <main className="form-main-content">
         <div className="form-content-wrapper">
-          <FormHeader />
+          <FormHeader title={formTitle} />
           <div className="form-builder-content">
             <div className="form-builder-main"></div>
             <div>
