@@ -6,7 +6,8 @@ import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
 import file from "../../assets/fe_edit.svg";
 import form from "../../assets/fe_edit (1).svg";
-import { createProjectWithForm } from "../../api/projectApi";
+import { createProjectWithForm } from "../../api/formBuilderApi";
+import { createForm } from "../../api/formBuilderApi";
 import { useNavigate } from "react-router-dom";
 
 const Home: React.FC = () => {
@@ -19,6 +20,12 @@ const Home: React.FC = () => {
     success: boolean;
     message: string;
     project: Record<string, unknown>;
+    form: { _id: string };
+  }
+
+  interface CreateFormResponse {
+    success: boolean;
+    message: string;
     form: { _id: string };
   }
 
@@ -50,12 +57,20 @@ const Home: React.FC = () => {
 
   const handleStartFromScratch = () => {
     setIsCreateProjectModalOpen(true);
-    // Implement create new project flow
   };
 
-  const handleCreateForm = () => {
-    console.log("Create form");
-    // Implement create form flow
+  const handleCreateForm = async () => {
+    try {
+      // You may want to prompt for a form name, or use a default
+      const payload = { formName: "Untitled Form" };
+      const result = (await createForm(payload)) as CreateFormResponse;
+      if (result && result.form && result.form._id) {
+        navigate(`/form-builder/${result.form._id}`);
+      }
+    } catch (error) {
+      console.error("Failed to create form:", error);
+      // Optionally, show error to user
+    }
   };
   const handleCloseCreateProjectModal = () => {
     setIsCreateProjectModalOpen(false);

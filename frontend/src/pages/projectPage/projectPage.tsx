@@ -6,7 +6,7 @@ import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
 import file from "../../assets/fe_edit.svg";
 import form from "../../assets/fe_edit (1).svg";
-import { createProjectWithForm } from "../../api/projectApi";
+import { createProjectWithForm } from "../../api/formBuilderApi";
 
 const ProjectPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("projects");
