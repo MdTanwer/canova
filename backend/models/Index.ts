@@ -1,12 +1,7 @@
 // Export all models and interfaces
 
 export { Reference, IReference } from "./Reference";
-export {
-  Question,
-  IQuestion,
-  IAnswerOption,
-  IQuestionSettings,
-} from "./Question";
+export { Question, IQuestion } from "./Question";
 export { Section, ISection, ISectionSettings } from "./Section";
 export { Page, IPage, IPageCondition } from "./Page";
 export { Form, IForm } from "./formbuilderForm";

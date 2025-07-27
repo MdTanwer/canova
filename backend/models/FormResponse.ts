@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export interface IAnswerResponse {
   questionId: Schema.Types.ObjectId;
@@ -107,7 +107,6 @@ FormResponseSchema.index({ respondentId: 1 });
 FormResponseSchema.index({ respondentEmail: 1 });
 FormResponseSchema.index({ completedAt: 1 });
 
-export const FormResponse = model<IFormResponse>(
-  "FormResponse",
-  FormResponseSchema
-);
+export const FormResponse =
+  mongoose.models.FormResponse ||
+  model<IFormResponse>("FormResponse", FormResponseSchema);

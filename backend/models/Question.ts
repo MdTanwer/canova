@@ -1,130 +1,125 @@
-import { Schema, model, Document } from "mongoose";
-
-export interface IAnswerOption {
-  id: string;
-  text: string;
-  isCorrect?: boolean;
-  value?: string;
-}
-
-export interface IQuestionSettings {
-  backgroundColor?: string;
-  textColor?: string;
-  fontSize?: number;
-  isRequired?: boolean;
-  placeholder?: string;
-  minLength?: number;
-  maxLength?: number;
-  minValue?: number;
-  maxValue?: number;
-  allowMultiple?: boolean;
-}
-
+import { model, Schema } from "mongoose";
 export interface IQuestion extends Document {
   _id: string;
-  title: string;
-  description?: string;
-  type:
-    | "short_answer"
-    | "long_answer"
-    | "multiple_choice"
-    | "checkbox"
-    | "dropdown"
-    | "date"
-    | "rating";
-  answerOptions?: IAnswerOption[];
-  correctAnswer?: string | string[];
-  defaultAnswer?: string | string[];
-  settings: IQuestionSettings;
-  references?: Schema.Types.ObjectId[];
-  order: number;
-  sectionId?: Schema.Types.ObjectId;
-  pageId: Schema.Types.ObjectId;
   formId: Schema.Types.ObjectId;
-  createdBy: Schema.Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
+  pageId: Schema.Types.ObjectId;
+  type:
+    | "short"
+    | "long"
+    | "multiple-choice"
+    | "time"
+    | "rating"
+    | "checkbox"
+    | "dropdowns"
+    | "date"
+    | "LinearScale"
+    | "upload";
+  question: string;
+  order: number;
+  required: boolean;
+  minLength?: number;
+
+  // 🆕 Reference media (when you show media and ask about it)
+  referenceMedia?: {
+    type: "image" | "video";
+    url: string;
+    filename: string;
+    description?: string;
+  };
+
+  // Option-based questions
+  options?: string[];
+
+  // Text questions
+  placeholder?: string;
+  maxLength?: number;
+
+  // Rating questions
+  starCount?: number;
+
+  // LinearScale questions
+  scaleMin?: number;
+  scaleMax?: number;
+  scaleStartLabel?: string;
+  scaleEndLabel?: string;
+
+  // Upload questions (when user uploads)
+  maxFiles?: number;
+  maxFileSizeMb?: number;
+  allowedTypes?: ("image" | "video")[];
 }
 
 const QuestionSchema = new Schema<IQuestion>(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    type: {
-      type: String,
-      enum: [
-        "short_answer",
-        "long_answer",
-        "multiple_choice",
-        "checkbox",
-        "dropdown",
-        "date",
-        "rating",
-      ],
-      required: true,
-    },
-    answerOptions: [
-      {
-        id: { type: String, required: true },
-        text: { type: String, required: true },
-        isCorrect: { type: Boolean, default: false },
-        value: { type: String },
-      },
-    ],
-    correctAnswer: {
-      type: Schema.Types.Mixed,
-    },
-    defaultAnswer: {
-      type: Schema.Types.Mixed,
-    },
-    settings: {
-      backgroundColor: { type: String, default: "#ffffff" },
-      textColor: { type: String, default: "#000000" },
-      fontSize: { type: Number, default: 14 },
-      isRequired: { type: Boolean, default: false },
-      placeholder: { type: String },
-      minLength: { type: Number },
-      maxLength: { type: Number },
-      minValue: { type: Number },
-      maxValue: { type: Number },
-      allowMultiple: { type: Boolean, default: false },
-    },
-    references: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Reference",
-      },
-    ],
-    order: {
-      type: Number,
-      required: true,
-    },
-    sectionId: {
+    formId: {
       type: Schema.Types.ObjectId,
-      ref: "Section",
+      ref: "Form",
+      required: true,
     },
     pageId: {
       type: Schema.Types.ObjectId,
       ref: "Page",
       required: true,
     },
-    formId: {
-      type: Schema.Types.ObjectId,
-      ref: "Form",
+    type: {
+      type: String,
+      enum: [
+        "short",
+        "long",
+        "multiple-choice",
+        "time",
+        "rating",
+        "checkbox",
+        "dropdowns",
+        "date",
+        "LinearScale",
+        "upload",
+      ],
       required: true,
     },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+    question: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    order: {
+      type: Number,
       required: true,
     },
+    required: {
+      type: Boolean,
+      default: false,
+    },
+    minLength: Number,
+
+    // 🆕 Reference media field
+    referenceMedia: {
+      type: {
+        type: String,
+        enum: ["image", "video"],
+      },
+      url: {
+        type: String,
+        required: function () {
+          return this.referenceMedia?.type;
+        },
+      },
+      filename: String,
+      description: String,
+    },
+
+    // Existing fields...
+    options: [String],
+    placeholder: String,
+    maxLength: Number,
+    starCount: Number,
+    scaleMin: Number,
+    scaleMax: Number,
+    scaleStartLabel: String,
+    scaleEndLabel: String,
+    maxFiles: Number,
+    maxFileSizeMb: Number,
+    allowedTypes: [String],
   },
   {
     timestamps: true,
@@ -132,3 +127,104 @@ const QuestionSchema = new Schema<IQuestion>(
 );
 
 export const Question = model<IQuestion>("Question", QuestionSchema);
+
+export interface IAnswer extends Document {
+  _id: string;
+  questionId: Schema.Types.ObjectId;
+  pageId: Schema.Types.ObjectId;
+  formResponseId: Schema.Types.ObjectId;
+  questionType: string;
+
+  // Different answer formats
+  textAnswer?: string;
+  selectedOptions?: string[];
+  timeAnswer?: string;
+  dateAnswer?: Date;
+  ratingValue?: number;
+  scaleValue?: number;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const AnswerSchema = new Schema<IAnswer>(
+  {
+    questionId: {
+      type: Schema.Types.ObjectId,
+      ref: "Question",
+      required: true,
+    },
+    pageId: {
+      type: Schema.Types.ObjectId,
+      ref: "Page",
+      required: true,
+    },
+    formResponseId: {
+      type: Schema.Types.ObjectId,
+      ref: "FormResponse",
+      required: true,
+    },
+    questionType: {
+      type: String,
+      required: true,
+    },
+
+    // Answer fields
+    textAnswer: String,
+    selectedOptions: [String],
+    timeAnswer: String,
+    dateAnswer: Date,
+    ratingValue: Number,
+    scaleValue: Number,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export const Answer = model<IAnswer>("Answer", AnswerSchema);
+
+export interface IFormResponse extends Document {
+  _id: string;
+  formId: Schema.Types.ObjectId;
+  currentPageId?: Schema.Types.ObjectId;
+  userId?: Schema.Types.ObjectId;
+  respondentEmail?: string;
+  status: "in-progress" | "completed" | "abandoned";
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const FormResponseSchema = new Schema<IFormResponse>(
+  {
+    formId: {
+      type: Schema.Types.ObjectId,
+      ref: "Form",
+      required: true,
+    },
+    currentPageId: {
+      type: Schema.Types.ObjectId,
+      ref: "Page",
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    respondentEmail: String,
+    status: {
+      type: String,
+      enum: ["in-progress", "completed", "abandoned"],
+      default: "in-progress",
+    },
+    completedAt: Date,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export const FormResponse = model<IFormResponse>(
+  "FormResponse",
+  FormResponseSchema
+);

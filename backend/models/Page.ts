@@ -68,7 +68,7 @@ const PageSchema = new Schema<IPage>(
           required: true,
         },
         value: {
-          type: Schema.Types.Mixed,
+          type: Schema.Types.Mixed, // Can be string, number, or array
           required: true,
         },
         nextPageId: {
@@ -92,7 +92,6 @@ const PageSchema = new Schema<IPage>(
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      // required: true,
     },
   },
   {

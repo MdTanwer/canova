@@ -9,6 +9,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import connectDB from "./utils/db";
 import cookieParser from "cookie-parser";
 import { formRouter } from "./routers/formRoutes";
+import { questionRouter } from "./routers/questionroutes";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,14 +24,14 @@ app.use(
 );
 app.use(cookieParser());
 
-// Body parsing middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" })); // For parsing JSON
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Routes
 app.use("/api/users", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/form", formRouter);
+app.use("/api/question", questionRouter);
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {
