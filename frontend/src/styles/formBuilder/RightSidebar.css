@@ -1,15 +1,16 @@
 .right-sidebar {
   position: absolute;
-  width: 340px;
+  width: 280px;
   background: #e7eef5;
   right: 0;
-  top: 0;
+  top: 82px;
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
   border-left: 1px solid #e0e0e0;
   box-sizing: border-box;
   overflow-y: auto;
+  height: calc(100vh - 82px);
 }
 
 /* Action Buttons Section */

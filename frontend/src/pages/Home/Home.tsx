@@ -21,12 +21,14 @@ const Home: React.FC = () => {
     message: string;
     project: Record<string, unknown>;
     form: { _id: string };
+    page: { _id: string };
   }
 
   interface CreateFormResponse {
     success: boolean;
     message: string;
     form: { _id: string };
+    page: { _id: string };
   }
 
   // Mock data - replace with your actual data source
@@ -65,7 +67,7 @@ const Home: React.FC = () => {
       const payload = { formName: "Untitled Form" };
       const result = (await createForm(payload)) as CreateFormResponse;
       if (result && result.form && result.form._id) {
-        navigate(`/form-builder/${result.form._id}`);
+        navigate(`/form-builder/${result.form._id}/${result.page._id}`);
       }
     } catch (error) {
       console.error("Failed to create form:", error);
@@ -82,7 +84,7 @@ const Home: React.FC = () => {
         formName,
       })) as CreateProjectResponse;
       if (result && result.form && result.form._id) {
-        navigate(`/form-builder/${result.form._id}`);
+        navigate(`/form-builder/${result.form._id}/${result.page._id}`);
       }
       setIsCreateProjectModalOpen(false);
     } catch (error) {

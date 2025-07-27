@@ -56,7 +56,10 @@ function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/projects" element={<ProjectPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/form-builder/:id" element={<FormBuilderPage />} />
+          <Route
+            path="/form-builder/:id/:pageId"
+            element={<FormBuilderPage />}
+          />
 
           <Route path="/profile-settings" element={<SettingPage />} />
 

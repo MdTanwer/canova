@@ -7,7 +7,9 @@ import video from "../../assets/Video(1).svg";
 import img1 from "../../assets/img154.svg";
 import sec from "../../assets/sec.svg";
 interface RightSidebarProps {
-  onAddQuestion?: () => void;
+  onAddQuestion?: (
+    type?: "short" | "long" | "multiple-choice" | "time" | "rating"
+  ) => void;
   onAddText?: () => void;
   onAddCondition?: () => void;
   onAddImage?: () => void;
@@ -35,7 +37,10 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
     <div className="right-sidebar">
       {/* Action Buttons Section */}
       <div className="action-buttons-section">
-        <button className="right-sidebar-action-btn" onClick={onAddQuestion}>
+        <button
+          className="right-sidebar-action-btn"
+          onClick={() => onAddQuestion?.("short")}
+        >
           <span className="right-sidebar-action-icon">
             <img src={add} alt="" />
           </span>

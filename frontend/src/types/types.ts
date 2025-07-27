@@ -20,3 +20,8 @@ export interface Project {
   type: "form" | "project";
   isShared?: boolean;
 }
+
+export interface Page {
+  _id: string;
+  title: string;
+}
