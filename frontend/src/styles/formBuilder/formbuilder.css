@@ -452,3 +452,11 @@
   font-size: 13px;
   color: #666;
 }
+
+.question-option-checkbox input[type="checkbox"] {
+  margin-right: 12px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border: 1px solid red;
+}
