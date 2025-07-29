@@ -18,6 +18,7 @@ export interface IQuestion extends Document {
   order: number;
   required: boolean;
   minLength?: number;
+  selectedScale: Number;
 
   // 🆕 Reference media (when you show media and ask about it)
   referenceMedia?: {
@@ -42,7 +43,9 @@ export interface IQuestion extends Document {
   scaleMax?: number;
   scaleStartLabel?: string;
   scaleEndLabel?: string;
+  dateAnswer?: Date;
 
+  selectedRating?: number;
   // Upload questions (when user uploads)
   maxFiles?: number;
   maxFileSizeMb?: number;
@@ -82,6 +85,9 @@ const QuestionSchema = new Schema<IQuestion>(
       required: true,
       trim: true,
     },
+    dateAnswer: {
+      type: Date,
+    },
     order: {
       type: Number,
       required: true,
@@ -112,6 +118,8 @@ const QuestionSchema = new Schema<IQuestion>(
     options: [String],
     placeholder: String,
     maxLength: Number,
+    selectedScale: Number,
+    selectedRating: Number,
     starCount: Number,
     scaleMin: Number,
     scaleMax: Number,

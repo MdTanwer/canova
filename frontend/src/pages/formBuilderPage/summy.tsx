@@ -1,836 +1,1064 @@
-// import React, { useState } from "react";
-
-// interface Question {
-//   id: string;
-//   type: "short" | "long" | "multiple-choice" | "time" | "rating";
-//   question: string;
-//   options?: string[];
-// }
-
-// const FormCanvas = () => {
-//   const [questions, setQuestions] = useState<Question[]>([]);
-//   const [backgroundColor, setBackgroundColor] = useState("#B6B6B6");
-//   const [sectionColor, setSectionColor] = useState("#B6B6B6");
-
-//   const addQuestion = (type: Question["type"] = "short") => {
-//     const newQuestion: Question = {
-//       id: `q${questions.length + 1}`,
-//       type: type,
-//       question: "What is ?",
-//       options:
-//         type === "multiple-choice" ? ["Option 01", "Option 02"] : undefined,
-//     };
-//     setQuestions([...questions, newQuestion]);
-//   };
-
-//   const updateQuestion = (id: string, field: keyof Question, value: any) => {
-//     setQuestions(
-//       questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
-//     );
-//   };
-
-//   const updateOption = (
-//     questionId: string,
-//     optionIndex: number,
-//     value: string
-//   ) => {
-//     setQuestions(
-//       questions.map((q) =>
-//         q.id === questionId && q.options
-//           ? {
-//               ...q,
-//               options: q.options.map((opt, idx) =>
-//                 idx === optionIndex ? value : opt
-//               ),
-//             }
-//           : q
-//       )
-//     );
-//   };
-
-//   const addOption = (questionId: string) => {
-//     setQuestions(
-//       questions.map((q) =>
-//         q.id === questionId && q.options
-//           ? { ...q, options: [...q.options, `Option ${q.options.length + 1}`] }
-//           : q
-//       )
-//     );
-//   };
-
-//   const removeOption = (questionId: string, optionIndex: number) => {
-//     setQuestions(
-//       questions.map((q) =>
-//         q.id === questionId && q.options && q.options.length > 2
-//           ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
-//           : q
-//       )
-//     );
-//   };
-
-//   const QuestionRenderer = ({
-//     question,
-//     index,
-//   }: {
-//     question: Question;
-//     index: number;
-//   }) => {
-//     const questionNumber = `Q${index + 1}`;
-
-//     const getAnswerTypeLabel = (type: string) => {
-//       switch (type) {
-//         case "short":
-//           return "Short Answer";
-//         case "long":
-//           return "Long Answer";
-//         case "multiple-choice":
-//           return "Multiple Choice";
-//         case "time":
-//           return "Time";
-//         case "rating":
-//           return "Rating";
-//         default:
-//           return "Short Answer";
-//       }
-//     };
-
-//     return (
-//       <div className="question-container">
-//         <div className="question-header">
-//           <span className="question-number">{questionNumber}</span>
-//           <input
-//             type="text"
-//             value={question.question}
-//             className="question-input editable-question"
-//             onChange={(e) =>
-//               updateQuestion(question.id, "question", e.target.value)
-//             }
-//             placeholder="Enter your question here"
-//           />
-//           <select
-//             className="answer-type-dropdown"
-//             value={question.type}
-//             onChange={(e) =>
-//               updateQuestion(question.id, "type", e.target.value)
-//             }
-//           >
-//             <option value="short">Short Answer</option>
-//             <option value="long">Long Answer</option>
-//             <option value="multiple-choice">Multiple Choice</option>
-//             <option value="time">Time</option>
-//             <option value="rating">Rating</option>
-//           </select>
-//         </div>
-
-//         <div className="answer-area">
-//           {question.type === "short" && (
-//             <div className="short-answer-preview">
-//               <input
-//                 type="text"
-//                 placeholder="Short answer text"
-//                 className="editable-answer-input"
-//               />
-//             </div>
-//           )}
-
-//           {question.type === "long" && (
-//             <div className="long-answer-preview">
-//               <textarea
-//                 placeholder="Long answer text"
-//                 className="editable-answer-textarea"
-//                 rows={4}
-//               />
-//             </div>
-//           )}
-
-//           {question.type === "multiple-choice" && (
-//             <div className="multiple-choice-area">
-//               {question.options?.map((option, idx) => (
-//                 <div key={idx} className="option-row">
-//                   <input
-//                     type="radio"
-//                     name={`q${question.id}`}
-//                     className="radio-input"
-//                   />
-//                   <input
-//                     type="text"
-//                     value={option}
-//                     className="option-input editable"
-//                     onChange={(e) =>
-//                       updateOption(question.id, idx, e.target.value)
-//                     }
-//                     placeholder="Enter option text"
-//                   />
-//                   {question.options && question.options.length > 2 && (
-//                     <button
-//                       className="delete-option-btn"
-//                       onClick={() => removeOption(question.id, idx)}
-//                     >
-//                       ×
-//                     </button>
-//                   )}
-//                 </div>
-//               ))}
-//               <button
-//                 className="add-option-btn"
-//                 onClick={() => addOption(question.id)}
-//               >
-//                 + Add option
-//               </button>
-//             </div>
-//           )}
-
-//           {question.type === "time" && (
-//             <div className="time-answer-preview">
-//               <input
-//                 type="time"
-//                 className="editable-time-input"
-//                 defaultValue="12:00"
-//               />
-//             </div>
-//           )}
-
-//           {question.type === "rating" && (
-//             <div className="rating-answer-preview">
-//               <div className="rating-scale">
-//                 {[1, 2, 3, 4, 5].map((num) => (
-//                   <div key={num} className="rating-item">
-//                     <div
-//                       className="rating-circle editable-rating"
-//                       data-value={num}
-//                     >
-//                       {num}
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-//               <div className="rating-labels">
-//                 <input
-//                   type="text"
-//                   placeholder="Low rating label"
-//                   className="rating-label-input"
-//                 />
-//                 <input
-//                   type="text"
-//                   placeholder="High rating label"
-//                   className="rating-label-input"
-//                 />
-//               </div>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="form-builder-container">
-//       {/* Left Sidebar */}
-//       <div className="sidebar">
-//         <div className="sidebar-header">
-//           <span className="close-icon">×</span>
-//           <span className="sidebar-title">CANOVA</span>
-//         </div>
-
-//         <div className="pages-list">
-//           <div className="page-item active">Page 01</div>
-//           <div className="page-item">Page 02</div>
-//           <div className="page-item">Page 03</div>
-//           <div className="page-item">Page 04</div>
-//         </div>
-
-//         <button className="add-page-btn">
-//           <span>+</span> Add new Page
-//         </button>
-//       </div>
-
-//       {/* Main Canvas */}
-//       <div className="main-canvas">
-//         <div className="canvas-header">
-//           <h1 className="canvas-title">Title</h1>
-//           <div className="header-actions">
-//             <button className="preview-btn">Preview</button>
-//             <button className="save-btn">Save</button>
-//           </div>
-//         </div>
-
-//         <div className="questions-area">
-//           {questions.length === 0 ? (
-//             <div className="empty-canvas">
-//               <p>Click "Add Question" to start building your form</p>
-//             </div>
-//           ) : (
-//             questions.map((question, index) => (
-//               <QuestionRenderer
-//                 key={question.id}
-//                 question={question}
-//                 index={index}
-//               />
-//             ))
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Right Sidebar */}
-//       <div className="right-sidebar">
-//         <div className="action-buttons">
-//           <button
-//             className="action-btn primary"
-//             onClick={() => addQuestion("short")}
-//           >
-//             <span>+</span> Add Question
-//           </button>
-//           <button className="action-btn">
-//             <span>≡</span> Add Text
-//           </button>
-//           <button className="action-btn">
-//             <span>⚙</span> Add Condition
-//           </button>
-//           <button className="action-btn">
-//             <span>🖼</span> Add Image
-//           </button>
-//           <button className="action-btn">
-//             <span>▶</span> Add Video
-//           </button>
-//           <button className="action-btn">
-//             <span>📄</span> Add Sections
-//           </button>
-//         </div>
-
-//         <div className="styling-section">
-//           <div className="color-section">
-//             <label>Background Color</label>
-//             <div className="color-picker">
-//               <div
-//                 className="color-preview"
-//                 style={{ backgroundColor: backgroundColor }}
-//               ></div>
-//               <input
-//                 type="text"
-//                 value={backgroundColor}
-//                 onChange={(e) => setBackgroundColor(e.target.value)}
-//               />
-//               <span>100%</span>
-//             </div>
-//           </div>
-
-//           <div className="color-section">
-//             <label>Section Color</label>
-//             <div className="color-picker">
-//               <div
-//                 className="color-preview"
-//                 style={{ backgroundColor: sectionColor }}
-//               ></div>
-//               <input
-//                 type="text"
-//                 value={sectionColor}
-//                 onChange={(e) => setSectionColor(e.target.value)}
-//               />
-//               <span>100%</span>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FormCanvas;
-
-// // CSS Styles
-// const styles = `
-// .form-builder-container {
-//   display: flex;
-//   height: 100vh;
-//   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-//   background: #f5f5f5;
-// }
-
-// .sidebar {
-//   width: 200px;
-//   background: white;
-//   border-right: 1px solid #e0e0e0;
-//   padding: 20px;
-//   display: flex;
-//   flex-direction: column;
-// }
-
-// .sidebar-header {
-//   display: flex;
-//   align-items: center;
-//   gap: 8px;
-//   margin-bottom: 30px;
-//   font-weight: 600;
-//   color: #666;
-// }
-
-// .close-icon {
-//   font-size: 20px;
-//   color: #999;
-// }
-
-// .sidebar-title {
-//   color: #333;
-// }
-
-// .pages-list {
-//   flex: 1;
-//   margin-bottom: 20px;
-// }
-
-// .page-item {
-//   padding: 10px 15px;
-//   margin-bottom: 5px;
-//   cursor: pointer;
-//   border-radius: 6px;
-//   color: #666;
-// }
-
-// .page-item.active {
-//   background: #e3f2fd;
-//   color: #1976d2;
-//   font-weight: 500;
-// }
-
-// .add-page-btn {
-//   display: flex;
-//   align-items: center;
-//   gap: 8px;
-//   width: 100%;
-//   padding: 10px 15px;
-//   border: 1px dashed #ccc;
-//   background: transparent;
-//   border-radius: 6px;
-//   cursor: pointer;
-//   color: #666;
-// }
-
-// .main-canvas {
-//   flex: 1;
-//   background: white;
-//   display: flex;
-//   flex-direction: column;
-//   border: 3px solid #4a90e2;
-//   margin: 10px;
-//   border-radius: 8px;
-// }
-
-// .canvas-header {
-//   display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   padding: 20px 40px;
-//   border-bottom: 1px solid #e0e0e0;
-// }
-
-// .canvas-title {
-//   font-size: 24px;
-//   font-weight: 600;
-//   margin: 0;
-//   color: #333;
-// }
-
-// .header-actions {
-//   display: flex;
-//   gap: 12px;
-// }
-
-// .preview-btn {
-//   padding: 8px 20px;
-//   border: 1px solid #ccc;
-//   background: white;
-//   border-radius: 6px;
-//   cursor: pointer;
-//   color: #333;
-// }
-
-// .save-btn {
-//   padding: 8px 20px;
-//   background: #333;
-//   color: white;
-//   border: none;
-//   border-radius: 6px;
-//   cursor: pointer;
-// }
-
-// .questions-area {
-//   flex: 1;
-//   padding: 40px;
-//   overflow-y: auto;
-// }
-
-// .empty-canvas {
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   height: 200px;
-//   color: #999;
-//   font-size: 16px;
-// }
-
-// .question-container {
-//   background: white;
-//   border: 1px solid #e0e0e0;
-//   border-radius: 8px;
-//   padding: 24px;
-//   margin-bottom: 24px;
-//   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-// }
-
-// .question-header {
-//   display: flex;
-//   align-items: center;
-//   gap: 16px;
-//   margin-bottom: 20px;
-// }
-
-// .question-number {
-//   font-weight: 600;
-//   color: #333;
-//   min-width: 30px;
-// }
-
-// .question-input {
-//   flex: 1;
-//   border: 1px solid transparent;
-//   font-size: 16px;
-//   outline: none;
-//   padding: 8px 12px;
-//   border-radius: 4px;
-//   background: transparent;
-//   transition: all 0.2s ease;
-// }
-
-// .question-input.editable-question {
-//   border: 1px solid #ddd;
-//   background: white;
-// }
-
-// .question-input.editable-question:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-//   background: white;
-// }
-
-// .question-input.editable-question:hover {
-//   border-color: #999;
-// }
-
-// .answer-type-dropdown {
-//   padding: 8px 12px;
-//   border: 1px solid #ccc;
-//   border-radius: 4px;
-//   background: white;
-//   min-width: 140px;
-// }
-
-// .answer-area {
-//   margin-top: 16px;
-// }
-
-// .short-answer-preview {
-//   background: #f8f9fa;
-//   border-radius: 4px;
-//   padding: 20px;
-// }
-
-// .long-answer-preview {
-//   background: #f8f9fa;
-//   border-radius: 4px;
-//   padding: 20px;
-// }
-
-// .editable-answer-input {
-//   width: 100%;
-//   border: 1px solid #ddd;
-//   border-radius: 4px;
-//   padding: 12px 16px;
-//   font-size: 14px;
-//   outline: none;
-//   background: white;
-// }
-
-// .editable-answer-input:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-// }
-
-// .editable-answer-textarea {
-//   width: 100%;
-//   border: 1px solid #ddd;
-//   border-radius: 4px;
-//   padding: 12px 16px;
-//   font-size: 14px;
-//   outline: none;
-//   background: white;
-//   resize: vertical;
-//   min-height: 80px;
-//   font-family: inherit;
-// }
-
-// .editable-answer-textarea:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-// }
-
-// .option-input.editable {
-//   border: 1px solid #ddd;
-//   background: white;
-//   transition: border-color 0.2s ease;
-// }
-
-// .option-input.editable:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-// }
-
-// .delete-option-btn {
-//   background: #ff4757;
-//   color: white;
-//   border: none;
-//   border-radius: 50%;
-//   width: 24px;
-//   height: 24px;
-//   cursor: pointer;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   font-size: 16px;
-//   line-height: 1;
-// }
-
-// .delete-option-btn:hover {
-//   background: #ff3742;
-// }
-
-// .editable-time-input {
-//   background: white;
-//   border: 1px solid #ddd;
-//   padding: 12px 20px;
-//   border-radius: 4px;
-//   font-size: 16px;
-//   outline: none;
-// }
-
-// .editable-time-input:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-// }
-
-// .editable-rating {
-//   transition: all 0.2s ease;
-//   cursor: pointer;
-// }
-
-// .editable-rating:hover {
-//   border-color: #4a90e2;
-//   background: #e3f2fd;
-//   transform: scale(1.1);
-// }
-
-// .rating-labels {
-//   display: flex;
-//   justify-content: space-between;
-//   margin-top: 16px;
-//   gap: 16px;
-// }
-
-// .rating-label-input {
-//   flex: 1;
-//   border: 1px solid #ddd;
-//   border-radius: 4px;
-//   padding: 8px 12px;
-//   font-size: 12px;
-//   outline: none;
-//   background: white;
-//   text-align: center;
-// }
-
-// .rating-label-input:focus {
-//   border-color: #4a90e2;
-//   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
-// }
-
-// .answer-placeholder, .answer-placeholder-large {
-//   color: #999;
-//   font-style: italic;
-// }
-
-// .multiple-choice-area {
-//   display: flex;
-//   flex-direction: column;
-//   gap: 12px;
-// }
-
-// .option-row {
-//   display: flex;
-//   align-items: center;
-//   gap: 12px;
-// }
-
-// .radio-input {
-//   width: 16px;
-//   height: 16px;
-// }
-
-// .option-input {
-//   flex: 1;
-//   border: none;
-//   background: #f8f8f8;
-//   padding: 8px 12px;
-//   border-radius: 4px;
-//   outline: none;
-// }
-
-// .add-option-btn {
-//   align-self: flex-start;
-//   background: none;
-//   border: 1px dashed #ccc;
-//   padding: 8px 16px;
-//   border-radius: 4px;
-//   cursor: pointer;
-//   color: #666;
-//   margin-top: 8px;
-// }
-
-// .time-answer-preview {
-//   background: #f8f9fa;
-//   border-radius: 4px;
-//   padding: 40px 20px;
-//   text-align: center;
-// }
-
-// .time-input-preview {
-//   background: white;
-//   border: 1px solid #ddd;
-//   padding: 12px 20px;
-//   border-radius: 4px;
-//   display: inline-block;
-//   color: #999;
-// }
-
-// .rating-answer-preview {
-//   background: #f8f9fa;
-//   border-radius: 4px;
-//   padding: 30px 20px;
-//   text-align: center;
-// }
-
-// .rating-scale {
-//   display: flex;
-//   justify-content: center;
-//   gap: 16px;
-// }
-
-// .rating-item {
-//   text-align: center;
-// }
-
-// .rating-circle {
-//   width: 40px;
-//   height: 40px;
-//   border: 2px solid #ddd;
-//   border-radius: 50%;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-//   cursor: pointer;
-//   transition: all 0.2s ease;
-// }
-
-// .rating-circle:hover {
-//   border-color: #4a90e2;
-//   background: #e3f2fd;
-// }
-
-// .right-sidsddebar {
-//   width: 280px;
-//   background: #f5f5f5;
-//   padding: 20px;
-//   border-left: 1px solid #e0e0e0;
-//   display: flex;
-//   flex-direction: column;
-// }
-
-// .action-buttons {
-//   margin-bottom: 40px;
-// }
-
-// .action-btn {
-//   display: flex;
-//   align-items: center;
-//   gap: 12px;
-//   width: 100%;
-//   padding: 12px 16px;
-//   margin-bottom: 8px;
-//   border: 1px solid #e0e0e0;
-//   background: white;
-//   border-radius: 6px;
-//   cursor: pointer;
-//   text-align: left;
-//   font-size: 14px;
-//   color: #333;
-// }
-
-// .action-btn:hover {
-//   background: #f8f8f8;
-// }
-
-// .action-btn.primary {
-//   background: #4a90e2;
-//   color: white;
-//   border-color: #4a90e2;
-// }
-
-// .styling-section {
-//   flex: 1;
-// }
-
-// .color-section {
-//   margin-bottom: 24px;
-// }
-
-// .color-section label {
-//   display: block;
-//   margin-bottom: 8px;
-//   font-weight: 500;
-//   color: #333;
-//   font-size: 14px;
-// }
-
-// .color-picker {
-//   display: flex;
-//   align-items: center;
-//   gap: 8px;
-//   background: white;
-//   padding: 8px 12px;
-//   border: 1px solid #e0e0e0;
-//   border-radius: 4px;
-// }
-
-// .color-preview {
-//   width: 24px;
-//   height: 24px;
-//   border-radius: 4px;
-//   border: 1px solid #ddd;
-// }
-
-// .color-picker input {
-//   flex: 1;
-//   border: none;
-//   outline: none;
-//   font-size: 13px;
-// }
-
-// .color-picker span {
-//   font-size: 13px;
-//   color: #666;
-// }
-// `;
-
-// // Inject styles
-// if (typeof document !== "undefined") {
-//   const styleSheet = document.createElement("style");
-//   styleSheet.textContent = styles;
-//   document.head.appendChild(styleSheet);
-// }
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import "../../styles/formBuilder/formbuilder.css";
+import Sidebar from "../../components/formbuilder/Sidebar";
+import FormHeader from "../../components/formbuilder/FormHeader";
+import RightSidebar from "../../components/formbuilder/RightSidebar";
+import {
+  getPages,
+  createNextPages,
+  getFormNmae,
+} from "../../api/formBuilderApi";
+import type { Page } from "../../types/types";
+
+// API functions for questions
+const API_BASE = "http://localhost:3000/api";
+
+const questionAPI = {
+  // Create question
+  createQuestion: async (questionData: any) => {
+    const response = await fetch(`${API_BASE}/questions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(questionData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create question");
+    }
+
+    return response.json();
+  },
+
+  // Get questions by page
+  getQuestionsByPage: async (pageId: string) => {
+    const response = await fetch(`${API_BASE}/questions/page/${pageId}`);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch questions");
+    }
+
+    return response.json();
+  },
+
+  // Update question
+  updateQuestion: async (questionId: string, updateData: any) => {
+    const response = await fetch(`${API_BASE}/questions/${questionId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update question");
+    }
+
+    return response.json();
+  },
+
+  // Delete question
+  deleteQuestion: async (questionId: string) => {
+    const response = await fetch(`${API_BASE}/questions/${questionId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete question");
+    }
+
+    return response.json();
+  },
+
+  // Save form draft
+  saveDraft: async (formId: string, draftData: any) => {
+    const response = await fetch(`${API_BASE}/forms/${formId}/draft`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(draftData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save draft");
+    }
+
+    return response.json();
+  },
+};
+
+interface Question {
+  _id?: string; // Backend MongoDB ID
+  id?: string; // Frontend temporary ID
+  formId?: string;
+  pageId?: string;
+  type:
+    | "short"
+    | "long"
+    | "multiple-choice"
+    | "time"
+    | "rating"
+    | "checkbox"
+    | "dropdowns"
+    | "date"
+    | "LinearScale"
+    | "upload";
+  question: string;
+  order?: number;
+  required?: boolean;
+
+  // Type-specific fields
+  options?: string[];
+  placeholder?: string;
+  maxLength?: number;
+  minLength?: number;
+  starCount?: number;
+  selectedRating?: number; // For UI only
+  scaleStartLabel?: string;
+  scaleEndLabel?: string;
+  scaleMin?: number;
+  scaleMax?: number;
+  scaleValue?: number; // For UI only
+  maxFiles?: number;
+  maxFileSizeMb?: number;
+  allowedTypes?: string[];
+
+  // Reference media
+  referenceMedia?: {
+    type: "image" | "video";
+    url: string;
+    filename: string;
+    description?: string;
+  };
+}
+
+const FormBuilderPage: React.FC = () => {
+  const [activeItem, setActiveItem] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("#646464");
+  const [sectionColor, setSectionColor] = useState("#646464");
+  const [allPages, setAllPages] = useState<Page[]>([]);
+  const [formTitle, setFormTitle] = useState<string>("");
+  const { id: formId } = useParams<{ id: string; pageId: string }>();
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch pages
+  useEffect(() => {
+    const fetchPages = async () => {
+      if (!formId) return;
+      try {
+        const result = (await getPages(formId)) as { pages: Page[] };
+
+        if (result && result.pages) {
+          setAllPages(result.pages);
+          if (result.pages.length > 0) {
+            setActiveItem(result.pages[0]._id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch pages:", error);
+      }
+    };
+    fetchPages();
+  }, [formId]);
+
+  // Fetch form title
+  useEffect(() => {
+    const fetchFormTitle = async () => {
+      if (!formId) return;
+      try {
+        const result = (await getFormNmae(formId)) as { formName: string };
+        if (result && result.formName) {
+          setFormTitle(result.formName);
+        }
+      } catch (error) {
+        console.error("Failed to fetch form name:", error);
+      }
+    };
+    fetchFormTitle();
+  }, [formId]);
+
+  // State to store questions for each page
+  const [pageQuestions, setPageQuestions] = useState<{
+    [pageId: string]: Question[];
+  }>({});
+  const [unsavedChanges, setUnsavedChanges] = useState<{
+    [pageId: string]: boolean;
+  }>({});
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Fetch questions when active page changes
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!activeItem) return;
+
+      // Check if we already have questions for this page
+      if (pageQuestions[activeItem]) {
+        setQuestions(pageQuestions[activeItem]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const result = await questionAPI.getQuestionsByPage(activeItem);
+        if (result.success && result.data) {
+          // Convert backend questions to frontend format
+          const formattedQuestions = result.data.map((q: any) => ({
+            ...q,
+            id: q._id, // Use MongoDB ID as frontend ID
+            selectedRating: 0, // Initialize UI state
+            scaleValue: q.scaleMin || 0, // Initialize UI state
+          }));
+
+          // Store questions for this page
+          setPageQuestions((prev) => ({
+            ...prev,
+            [activeItem]: formattedQuestions,
+          }));
+
+          setQuestions(formattedQuestions);
+        } else {
+          // No questions for this page yet
+          setQuestions([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch questions:", error);
+        setQuestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [activeItem, pageQuestions]);
+
+  const handleItemClick = async (item: string) => {
+    // Save current page questions to backend if there are unsaved changes
+    if (activeItem && unsavedChanges[activeItem] && questions.length > 0) {
+      try {
+        await savePageQuestionsToBackend(activeItem, questions);
+        console.log(
+          `💾 Auto-saved questions for page ${activeItem} before switching`
+        );
+      } catch (error) {
+        console.error("Failed to save questions before page switch:", error);
+        // Optionally show user a warning but don't block page switch
+      }
+    }
+
+    // Store current questions in cache
+    if (activeItem && questions.length > 0) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: questions,
+      }));
+    }
+
+    setActiveItem(item);
+  };
+
+  const handleAddText = () => {
+    console.log("Add Text clicked");
+  };
+
+  const handleAddCondition = () => {
+    console.log("Add Condition clicked");
+  };
+
+  const handleAddImage = () => {
+    console.log("Add Image clicked");
+  };
+
+  const handleAddVideo = () => {
+    console.log("Add Video clicked");
+  };
+
+  const handleAddSections = () => {
+    console.log("Add Sections clicked");
+  };
+
+  const createNextPage = async () => {
+    if (!formId) return;
+    try {
+      const result = (await createNextPages(formId)) as { page: Page };
+      if (result && result.page) {
+        setAllPages((prev) => [...prev, result.page]);
+        setActiveItem(result.page._id);
+      }
+    } catch (error) {
+      console.error("Failed to create next page:", error);
+    }
+  };
+
+  // Save questions to backend for a specific page
+  const savePageQuestionsToBackend = async (
+    pageId: string,
+    questionsToSave: Question[]
+  ) => {
+    if (!formId) return;
+
+    try {
+      setIsSyncing(true);
+
+      // First, delete all existing questions for this page
+      const existingQuestions = await questionAPI.getQuestionsByPage(pageId);
+      if (existingQuestions.success && existingQuestions.data) {
+        for (const question of existingQuestions.data) {
+          await questionAPI.deleteQuestion(question._id);
+        }
+      }
+
+      // Then create all questions fresh
+      const savedQuestions: Question[] = [];
+      for (let i = 0; i < questionsToSave.length; i++) {
+        const question = questionsToSave[i];
+        const questionData = {
+          formId,
+          pageId,
+          type: question.type,
+          question: question.question,
+          order: i,
+          required: question.required || false,
+
+          // Type-specific fields
+          options: question.options,
+          placeholder: question.placeholder,
+          maxLength: question.maxLength,
+          minLength: question.minLength,
+          starCount: question.starCount,
+          scaleStartLabel: question.scaleStartLabel,
+          scaleEndLabel: question.scaleEndLabel,
+          scaleMin: question.scaleMin,
+          scaleMax: question.scaleMax,
+          maxFiles: question.maxFiles,
+          maxFileSizeMb: question.maxFileSizeMb,
+          allowedTypes: question.allowedTypes,
+        };
+
+        const result = await questionAPI.createQuestion(questionData);
+        if (result.success) {
+          savedQuestions.push({
+            ...result.data,
+            id: result.data._id,
+            selectedRating: question.selectedRating || 0,
+            scaleValue: question.scaleValue || question.scaleMin || 0,
+          });
+        }
+      }
+
+      // Update local cache with backend IDs
+      setPageQuestions((prev) => ({
+        ...prev,
+        [pageId]: savedQuestions,
+      }));
+
+      // Mark as saved
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [pageId]: false,
+      }));
+
+      // Update current questions if this is the active page
+      if (pageId === activeItem) {
+        setQuestions(savedQuestions);
+      }
+
+      console.log(
+        `✅ Saved ${savedQuestions.length} questions for page ${pageId}`
+      );
+    } catch (error) {
+      console.error("Failed to save page questions:", error);
+      throw error;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Update question locally only
+  const updateQuestion = (id: string, field: keyof Question, value: any) => {
+    // Update local state immediately for UI responsiveness
+    const updatedQuestions = questions.map((q) =>
+      q.id === id ? { ...q, [field]: value } : q
+    );
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      // Mark page as having unsaved changes
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+  };
+
+  const updateOption = (
+    questionId: string,
+    optionIndex: number,
+    value: string
+  ) => {
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId && q.options
+        ? {
+            ...q,
+            options: q.options.map((opt, idx) =>
+              idx === optionIndex ? value : opt
+            ),
+          }
+        : q
+    );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      // Mark page as having unsaved changes
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+  };
+
+  const addOption = (questionId: string) => {
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId && q.options
+        ? { ...q, options: [...q.options, `Option ${q.options.length + 1}`] }
+        : q
+    );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+  };
+
+  const removeOption = (questionId: string, optionIndex: number) => {
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId && q.options && q.options.length > 2
+        ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
+        : q
+    );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+  };
+
+  const addQuestion = (type: Question["type"] = "short") => {
+    if (!formId || !activeItem) return;
+
+    const tempId = `temp_${Date.now()}`;
+    const newQuestion: Question = {
+      id: tempId,
+      formId,
+      pageId: activeItem,
+      type: type,
+      question: "What is ?",
+      order: questions.length,
+      required: false,
+      options:
+        type === "multiple-choice" ||
+        type === "checkbox" ||
+        type === "dropdowns"
+          ? ["Option 01", "Option 02"]
+          : undefined,
+      starCount: type === "rating" ? 5 : undefined,
+      selectedRating: type === "rating" ? 0 : undefined,
+      scaleStartLabel: type === "LinearScale" ? "Scale Starting" : undefined,
+      scaleEndLabel: type === "LinearScale" ? "Scale Ending" : undefined,
+      scaleMin: type === "LinearScale" ? 0 : undefined,
+      scaleMax: type === "LinearScale" ? 10 : undefined,
+      scaleValue: type === "LinearScale" ? 5 : undefined,
+      maxFiles: type === "upload" ? 5 : undefined,
+      maxFileSizeMb: type === "upload" ? 5 : undefined,
+      allowedTypes:
+        type === "upload"
+          ? ["image", "video", "document", "spreadsheet"]
+          : undefined,
+    };
+
+    // Add to local state immediately - NO API CALL
+    const updatedQuestions = [...questions, newQuestion];
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+
+    console.log(`📝 Added question locally (will sync when page changes)`);
+  };
+
+  const deleteQuestion = (questionId: string) => {
+    const filteredQuestions = questions.filter((q) => q.id !== questionId);
+    setQuestions(filteredQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: filteredQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+
+    console.log(`🗑️ Deleted question locally (will sync when page changes)`);
+  };
+
+  const setRating = (questionId: string, rating: number) => {
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId ? { ...q, selectedRating: rating } : q
+    );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+  };
+
+  // Manual save function for current page
+  const saveCurrentPage = async () => {
+    if (!activeItem || questions.length === 0) {
+      console.log("No questions to save on current page");
+      return;
+    }
+
+    try {
+      await savePageQuestionsToBackend(activeItem, questions);
+      console.log("✅ Current page saved successfully!");
+      // Optionally show success message to user
+    } catch (error) {
+      console.error("Failed to save current page:", error);
+      // Optionally show error message to user
+    }
+  };
+
+  // Save draft function - saves all pages
+  const saveDraft = async () => {
+    if (!formId) return;
+
+    setIsSaving(true);
+    try {
+      // Save current page first if it has unsaved changes
+      if (activeItem && unsavedChanges[activeItem] && questions.length > 0) {
+        await savePageQuestionsToBackend(activeItem, questions);
+      }
+
+      // Save all other pages with unsaved changes
+      for (const [pageId, hasUnsavedChanges] of Object.entries(
+        unsavedChanges
+      )) {
+        if (
+          hasUnsavedChanges &&
+          pageId !== activeItem &&
+          pageQuestions[pageId]
+        ) {
+          await savePageQuestionsToBackend(pageId, pageQuestions[pageId]);
+        }
+      }
+
+      console.log("✅ All pages saved successfully!");
+      // Optionally show success message
+    } catch (error) {
+      console.error("Failed to save draft:", error);
+      // Optionally show error message
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const QuestionRenderer = ({
+    question,
+    index,
+  }: {
+    question: Question;
+    index: number;
+  }) => {
+    const questionNumber = `Q${index + 1}`;
+
+    return (
+      <div className="question-container1">
+        <div className="question-container">
+          <div className="question-header">
+            <span className="question-number">{questionNumber}</span>
+            <input
+              type="text"
+              value={question.question}
+              className="question-input editable-question"
+              onChange={(e) =>
+                updateQuestion(question.id!, "question", e.target.value)
+              }
+              placeholder="Enter your question here"
+            />
+            <select
+              className="answer-type-dropdown"
+              value={question.type}
+              onChange={(e) =>
+                updateQuestion(question.id!, "type", e.target.value)
+              }
+            >
+              <option value="short">Short Answer</option>
+              <option value="long">Long Answer</option>
+              <option value="multiple-choice">Multiple Choice</option>
+              <option value="dropdowns">Dropdowns</option>
+              <option value="date">Date</option>
+              <option value="time">Time</option>
+              <option value="checkbox">Checkbox</option>
+              <option value="rating">Rating</option>
+              <option value="LinearScale">Linear Scale</option>
+              <option value="upload">Upload</option>
+            </select>
+
+            {/* Delete button */}
+            <button
+              className="delete-question-btn"
+              onClick={() => deleteQuestion(question.id!)}
+              style={{
+                marginLeft: "10px",
+                padding: "5px 10px",
+                backgroundColor: "#ff4444",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "12px",
+              }}
+            >
+              Delete
+            </button>
+          </div>
+
+          <div className="answer-area">
+            {/* Reference Media Display */}
+            {question.referenceMedia && (
+              <div className="reference-media" style={{ marginBottom: "16px" }}>
+                {question.referenceMedia.type === "image" ? (
+                  <img
+                    src={question.referenceMedia.url}
+                    alt={question.referenceMedia.description}
+                    style={{
+                      maxWidth: "300px",
+                      maxHeight: "200px",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <video
+                    src={question.referenceMedia.url}
+                    controls
+                    style={{ maxWidth: "300px", maxHeight: "200px" }}
+                  />
+                )}
+                <p>{question.referenceMedia.description}</p>
+              </div>
+            )}
+
+            {/* Question type specific rendering (keeping your existing logic) */}
+            {question.type === "short" && (
+              <div className="short-answer-preview">
+                <input
+                  type="text"
+                  className="editable-answer-input"
+                  placeholder={question.placeholder || "Short answer text"}
+                  maxLength={question.maxLength}
+                  disabled
+                />
+              </div>
+            )}
+
+            {question.type === "long" && (
+              <div className="long-answer-preview">
+                <textarea
+                  className="editable-answer-textarea"
+                  rows={4}
+                  placeholder={question.placeholder || "Long answer text"}
+                  maxLength={question.maxLength}
+                  disabled
+                />
+              </div>
+            )}
+
+            {question.type === "multiple-choice" && (
+              <div className="multiple-choice-area">
+                {question.options?.map((option, idx) => (
+                  <div key={idx} className="option-row">
+                    <input
+                      type="radio"
+                      name={`q${question.id}`}
+                      className="radio-input"
+                      disabled
+                    />
+                    <input
+                      type="text"
+                      value={option}
+                      className="option-input editable"
+                      onChange={(e) =>
+                        updateOption(question.id!, idx, e.target.value)
+                      }
+                      placeholder="Enter option text"
+                    />
+                    {question.options && question.options.length > 2 && (
+                      <button
+                        className="delete-option-btn"
+                        onClick={() => removeOption(question.id!, idx)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  className="add-option-btn"
+                  onClick={() => addOption(question.id!)}
+                >
+                  + Add option
+                </button>
+              </div>
+            )}
+
+            {/* Keep all your other question type renderings... */}
+            {/* I'll include the upload type as an example */}
+            {question.type === "upload" && (
+              <div className="upload-area" style={{ marginTop: 24 }}>
+                <div style={{ display: "flex", gap: 32, marginBottom: 16 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <span>Number of Files:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={question.maxFiles || 1}
+                      onChange={(e) =>
+                        updateQuestion(
+                          question.id!,
+                          "maxFiles",
+                          Number(e.target.value)
+                        )
+                      }
+                      style={{
+                        width: "48px",
+                        textAlign: "center",
+                        borderRadius: "10px",
+                        border: "none",
+                        background: "#E9F1F7",
+                        fontWeight: 600,
+                        fontSize: "16px",
+                        padding: "4px 0",
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <span>Max File Size:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={question.maxFileSizeMb || 1}
+                      onChange={(e) =>
+                        updateQuestion(
+                          question.id!,
+                          "maxFileSizeMb",
+                          Number(e.target.value)
+                        )
+                      }
+                      style={{
+                        width: "48px",
+                        textAlign: "center",
+                        borderRadius: "10px",
+                        border: "none",
+                        background: "#E9F1F7",
+                        fontWeight: 600,
+                        fontSize: "16px",
+                        padding: "4px 0",
+                        marginRight: 4,
+                      }}
+                    />
+                    <span
+                      style={{
+                        background: "#E9F1F7",
+                        borderRadius: "10px",
+                        padding: "4px 12px",
+                        fontWeight: 600,
+                        fontSize: "16px",
+                      }}
+                    >
+                      mb
+                    </span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: 16,
+                    maxWidth: 520,
+                  }}
+                >
+                  {[
+                    "image",
+                    "pdf",
+                    "ppt",
+                    "document",
+                    "video",
+                    "zip",
+                    "audio",
+                    "spreadsheet",
+                  ].map((type) => (
+                    <label
+                      key={type}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontWeight: 500,
+                        fontSize: 16,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={question.allowedTypes?.includes(type) || false}
+                        onChange={(e) => {
+                          const allowed = question.allowedTypes || [];
+                          if (e.target.checked) {
+                            updateQuestion(question.id!, "allowedTypes", [
+                              ...allowed,
+                              type,
+                            ]);
+                          } else {
+                            updateQuestion(
+                              question.id!,
+                              "allowedTypes",
+                              allowed.filter((t) => t !== type)
+                            );
+                          }
+                        }}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          accentColor: "#4BA3FD",
+                          borderRadius: 4,
+                        }}
+                      />
+                      {type}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="form-container">
+      <Sidebar
+        activeItem={activeItem}
+        onItemClick={handleItemClick}
+        pages={allPages}
+        createNextPage={createNextPage}
+      />
+      <main className="form-main-content">
+        <div className="form-content-wrapper">
+          <FormHeader title={formTitle} />
+
+          {/* Save Buttons */}
+          <div
+            style={{
+              padding: "10px",
+              textAlign: "right",
+              display: "flex",
+              gap: "10px",
+              justifyContent: "flex-end",
+            }}
+          >
+            <button
+              onClick={saveCurrentPage}
+              disabled={!activeItem || !unsavedChanges[activeItem] || isSyncing}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: unsavedChanges[activeItem]
+                  ? "#28a745"
+                  : "#ccc",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor:
+                  unsavedChanges[activeItem] && !isSyncing
+                    ? "pointer"
+                    : "not-allowed",
+                fontSize: "14px",
+              }}
+            >
+              {isSyncing ? "Syncing..." : "Save Current Page"}
+            </button>
+
+            <button
+              onClick={saveDraft}
+              disabled={isSaving}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: isSaving ? "#ccc" : "#4BA3FD",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: isSaving ? "not-allowed" : "pointer",
+              }}
+            >
+              {isSaving ? "Saving All..." : "Save All Pages"}
+            </button>
+          </div>
+
+          <div className="form-builder-content">
+            <div className="form-builder-main">
+              {loading ? (
+                <div className="loading">Loading questions...</div>
+              ) : questions.length === 0 ? (
+                <div className="empty-canvas">
+                  <p>Click "Add Question" to start building your form</p>
+                  <p>
+                    <strong>Current Page:</strong>{" "}
+                    {allPages.find((p) => p._id === activeItem)?.title ||
+                      "No page selected"}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "10px",
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <strong>Current Page:</strong>{" "}
+                    {allPages.find((p) => p._id === activeItem)?.title ||
+                      "Unknown Page"}
+                    <span style={{ marginLeft: "20px", color: "#666" }}>
+                      ({questions.length} question
+                      {questions.length !== 1 ? "s" : ""})
+                    </span>
+                    {unsavedChanges[activeItem] && (
+                      <span
+                        style={{
+                          marginLeft: "20px",
+                          color: "#ff6b35",
+                          fontWeight: "bold",
+                          backgroundColor: "#fff3cd",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        ● UNSAVED CHANGES
+                      </span>
+                    )}
+                    {isSyncing && (
+                      <span
+                        style={{
+                          marginLeft: "10px",
+                          color: "#007bff",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Syncing...
+                      </span>
+                    )}
+                  </div>
+                  {questions.map((question, index) => (
+                    <QuestionRenderer
+                      key={question.id}
+                      question={question}
+                      index={index}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+            <div>
+              <RightSidebar
+                onAddQuestion={addQuestion}
+                onAddText={handleAddText}
+                onAddCondition={handleAddCondition}
+                onAddImage={handleAddImage}
+                onAddVideo={handleAddVideo}
+                onAddSections={handleAddSections}
+                backgroundColor={backgroundColor}
+                sectionColor={sectionColor}
+                onBackgroundColorChange={setBackgroundColor}
+                onSectionColorChange={setSectionColor}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default FormBuilderPage;

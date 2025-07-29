@@ -9,7 +9,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import connectDB from "./utils/db";
 import cookieParser from "cookie-parser";
 import { formRouter } from "./routers/formRoutes";
-import { questionRouter } from "./routers/questionroutes";
+import { questionRouter } from "./routers/questionRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 3000;

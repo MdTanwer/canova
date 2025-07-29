@@ -65,6 +65,9 @@ export const createQuestion = async (req: Request, res: Response) => {
       maxFiles,
       maxFileSizeMb,
       allowedTypes,
+      selectedRating,
+      dateAnswer,
+      selectedScale,
 
       // Reference media description (if file uploaded)
       referenceMediaDescription,
@@ -153,24 +156,32 @@ export const createQuestion = async (req: Request, res: Response) => {
 
       case "rating":
         questionData.starCount = starCount || 5;
-        if (
-          (questionData.starCount ?? 5) < 1 ||
-          (questionData.starCount ?? 5) > 10
-        ) {
+        questionData.selectedRating = selectedRating;
+        if (!selectedRating) {
           return res.status(400).json({
             success: false,
-            message: "Star count must be between 1 and 10",
+            message: "Star count must be needed",
+          });
+        }
+        break;
+      case "date":
+        questionData.dateAnswer = dateAnswer;
+        if (!dateAnswer) {
+          return res.status(400).json({
+            success: false,
+            message: " DateAnswer must be needed",
           });
         }
         break;
 
       case "LinearScale":
+        questionData.selectedScale = selectedScale;
         questionData.scaleMin = scaleMin || 0;
         questionData.scaleMax = scaleMax || 10;
-        questionData.scaleStartLabel = scaleStartLabel || "Poor";
-        questionData.scaleEndLabel = scaleEndLabel || "Excellent";
+        questionData.scaleStartLabel = scaleStartLabel || "Scale Starting";
+        questionData.scaleEndLabel = scaleEndLabel || "Scale Ending";
 
-        if ((questionData.scaleMin ?? 0) >= (questionData.scaleMax ?? 10)) {
+        if (!questionData.selectedScale) {
           return res.status(400).json({
             success: false,
             message: "Scale minimum must be less than maximum",

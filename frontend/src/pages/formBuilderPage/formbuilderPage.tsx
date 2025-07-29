@@ -9,7 +9,12 @@ import {
   createNextPages,
   getFormNmae,
 } from "../../api/formBuilderApi";
-import type { Page } from "../../types/types";
+import {
+  createQuestion,
+  getQuestionsByPage,
+  deleteQuestion1,
+} from "../../api/formBuilderQ$A";
+import type { Page, Question } from "../../types/types";
 
 const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("");
@@ -19,7 +24,9 @@ const FormBuilderPage: React.FC = () => {
   const [formTitle, setFormTitle] = useState<string>("");
   const { id: formId } = useParams<{ id: string; pageId: string }>();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch pages
   useEffect(() => {
     const fetchPages = async () => {
       if (!formId) return;
@@ -39,6 +46,7 @@ const FormBuilderPage: React.FC = () => {
     fetchPages();
   }, [formId]);
 
+  // Fetch form title
   useEffect(() => {
     const fetchFormTitle = async () => {
       if (!formId) return;
@@ -54,7 +62,81 @@ const FormBuilderPage: React.FC = () => {
     fetchFormTitle();
   }, [formId]);
 
-  const handleItemClick = (item: string) => {
+  // State to store questions for each page
+  const [pageQuestions, setPageQuestions] = useState<{
+    [pageId: string]: Question[];
+  }>({});
+  const [unsavedChanges, setUnsavedChanges] = useState<{
+    [pageId: string]: boolean;
+  }>({});
+
+  // Fetch questions when active page changes
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!activeItem) return;
+
+      // Check if we already have questions for this page
+      if (pageQuestions[activeItem]) {
+        setQuestions(pageQuestions[activeItem]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const result = (await getQuestionsByPage(activeItem)) as {
+          data: Question[];
+        };
+        const questionsArray = result.data || [];
+        // Convert backend questions to frontend format
+        const formattedQuestions = questionsArray.map((q: Question) => ({
+          ...q,
+          id: q._id, // Use MongoDB ID as frontend ID
+          selectedRating: q.selectedRating || 0, // Initialize UI state
+          scaleValue: q.scaleMin || 0, // Initialize UI state
+          dateAnswer: q.dateAnswer
+            ? typeof q.dateAnswer === "string"
+              ? q.dateAnswer.slice(0, 10)
+              : q.dateAnswer
+            : "",
+        }));
+
+        // Store questions for this page
+        setPageQuestions((prev) => ({
+          ...prev,
+          [activeItem]: formattedQuestions,
+        }));
+
+        setQuestions(formattedQuestions);
+      } catch (error) {
+        console.error("Failed to fetch questions:", error);
+        setQuestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [activeItem, pageQuestions]);
+
+  const handleItemClick = async (item: string) => {
+    // Save current page questions to backend if there are unsaved changes
+    if (activeItem && unsavedChanges[activeItem] && questions.length > 0) {
+      try {
+        await savePageQuestionsToBackend(activeItem, questions);
+      } catch (error) {
+        console.error("Failed to save questions before page switch:", error);
+        // Optionally show user a warning but don't block page switch
+      }
+    }
+
+    // Store current questions in cache
+    if (activeItem && questions.length > 0) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: questions,
+      }));
+    }
+
     setActiveItem(item);
   };
 
@@ -77,6 +159,7 @@ const FormBuilderPage: React.FC = () => {
   const handleAddSections = () => {
     console.log("Add Sections clicked");
   };
+
   const createNextPage = async () => {
     if (!formId) return;
     try {
@@ -90,37 +173,120 @@ const FormBuilderPage: React.FC = () => {
     }
   };
 
-  interface Question {
-    id: string;
-    type:
-      | "short"
-      | "long"
-      | "multiple-choice"
-      | "time"
-      | "rating"
-      | "checkbox"
-      | "dropdowns"
-      | "date"
-      | "LinearScale"
-      | "upload";
-    question: string;
-    options?: string[];
-    starCount?: number; // Only for rating
-    selectedRating?: number; // Only for rating
-    scaleStartLabel?: string; // Only for linear scale
-    scaleEndLabel?: string; // Only for linear scale
-    scaleMin?: number; // Only for linear scale
-    scaleMax?: number; // Only for linear scale
-    scaleValue?: number; // Only for linear scale
-    maxFiles?: number; // Only for upload
-    maxFileSizeMb?: number; // Only for upload
-    allowedTypes?: string[]; // Only for upload
-  }
+  // Save questions to backend for a specific page
+  const savePageQuestionsToBackend = async (
+    pageId: string,
+    questionsToSave: Question[]
+  ) => {
+    if (!formId) return;
 
-  const updateQuestion = (id: string, field: keyof Question, value: any) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+    try {
+      // First, delete all existing questions for this page
+      const existingQuestions = await getQuestionsByPage(pageId);
+      if (existingQuestions.success && existingQuestions.data) {
+        for (const question of existingQuestions.data) {
+          if (question._id) {
+            await deleteQuestion1(question._id);
+          }
+        }
+      }
+      // Then create all questions fresh
+      const savedQuestions: Question[] = [];
+      for (let i = 0; i < questionsToSave.length; i++) {
+        const question = questionsToSave[i];
+        const questionData = {
+          formId,
+          pageId,
+          type: question.type,
+          question: question.question,
+          order: i,
+          required: question.required || false,
+
+          // Type-specific fields
+          options: question.options,
+          placeholder: question.placeholder,
+          maxLength: question.maxLength,
+          selectedRating: question.selectedRating,
+          minLength: question.minLength,
+          starCount: question.starCount,
+          scaleStartLabel: question.scaleStartLabel,
+          scaleEndLabel: question.scaleEndLabel,
+          scaleMin: question.scaleMin,
+          scaleMax: question.scaleMax,
+          maxFiles: question.maxFiles,
+          maxFileSizeMb: question.maxFileSizeMb,
+          allowedTypes: question.allowedTypes,
+          dateAnswer: question.dateAnswer,
+          selectedScale: question.selectedScale,
+        };
+
+        const result = (await createQuestion(questionData)) as {
+          success: boolean;
+          data: Question;
+        };
+        if (result.success) {
+          savedQuestions.push({
+            ...result.data,
+            id: result.data._id,
+            selectedRating: question.selectedRating || 0,
+            scaleValue: question.scaleValue || question.scaleMin || 0,
+          });
+        }
+      }
+
+      // Update local cache with backend IDs
+      setPageQuestions((prev) => ({
+        ...prev,
+        [pageId]: savedQuestions,
+      }));
+
+      // Mark as saved
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [pageId]: false,
+      }));
+
+      // Update current questions if this is the active page
+      if (pageId === activeItem) {
+        setQuestions(savedQuestions);
+      }
+
+      console.log(
+        `✅ Saved ${savedQuestions.length} questions for page ${pageId}`
+      );
+    } catch (error) {
+      console.error("Failed to save page questions:", error);
+      throw error;
+    }
+  };
+
+  // Update question locally only
+  const updateQuestion = (
+    id: string,
+    field: keyof Question,
+    value: Question[keyof Question]
+  ) => {
+    // Update local state immediately for UI responsiveness
+    const updatedQuestions = questions.map((q) =>
+      q.id === id ? { ...q, [field]: value } : q
     );
+    setQuestions(updatedQuestions);
+
+    console.log("Updated questions:", updatedQuestions); // Debug log
+
+    // Update the page-specific cache
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      // Mark page as having unsaved changes
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
   };
 
   const updateOption = (
@@ -128,46 +294,108 @@ const FormBuilderPage: React.FC = () => {
     optionIndex: number,
     value: string
   ) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.options
-          ? {
-              ...q,
-              options: q.options.map((opt, idx) =>
-                idx === optionIndex ? value : opt
-              ),
-            }
-          : q
-      )
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId && q.options
+        ? {
+            ...q,
+            options: q.options.map((opt, idx) =>
+              idx === optionIndex ? value : opt
+            ),
+          }
+        : q
     );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      // Mark page as having unsaved changes
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
   };
 
   const addOption = (questionId: string) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.options
-          ? { ...q, options: [...q.options, `Option ${q.options.length + 1}`] }
-          : q
-      )
-    );
+    console.log("Adding option to question:", questionId); // Debug log
+
+    const updatedQuestions = questions.map((q) => {
+      if (q.id === questionId) {
+        const currentOptions = q.options || [];
+        const newOptions = [
+          ...currentOptions,
+          `Option ${currentOptions.length + 1}`,
+        ];
+
+        return { ...q, options: newOptions };
+      }
+      return q;
+    });
+
+    console.log("Updated questions:", updatedQuestions); // Debug log
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
   };
 
   const removeOption = (questionId: string, optionIndex: number) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId && q.options && q.options.length > 2
-          ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
-          : q
-      )
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId && q.options && q.options.length > 2
+        ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
+        : q
     );
+
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
   };
+
   const addQuestion = (type: Question["type"] = "short") => {
+    if (!formId || !activeItem) return;
+
+    const tempId = `temp_${Date.now()}`;
     const newQuestion: Question = {
-      id: `q${questions.length + 1}`,
+      id: tempId,
+      formId,
+      pageId: activeItem,
       type: type,
       question: "What is ?",
+      order: questions.length,
+      required: false,
       options:
-        type === "multiple-choice" ? ["Option 01", "Option 02"] : undefined,
+        type === "multiple-choice" ||
+        type === "checkbox" ||
+        type === "dropdowns"
+          ? ["Option 01", "Option 02"]
+          : undefined,
       starCount: type === "rating" ? 5 : undefined,
       selectedRating: type === "rating" ? 0 : undefined,
       scaleStartLabel: type === "LinearScale" ? "Scale Starting" : undefined,
@@ -177,20 +405,75 @@ const FormBuilderPage: React.FC = () => {
       scaleValue: type === "LinearScale" ? 5 : undefined,
       maxFiles: type === "upload" ? 5 : undefined,
       maxFileSizeMb: type === "upload" ? 5 : undefined,
+      selectedScale: type === "LinearScale" ? 0 : undefined,
       allowedTypes:
         type === "upload"
           ? ["image", "video", "document", "spreadsheet"]
           : undefined,
+      dateAnswer: type === "date" ? new Date() : undefined,
     };
-    setQuestions([...questions, newQuestion]);
+
+    // Add to local state immediately - NO API CALL
+    const updatedQuestions = [...questions, newQuestion];
+    setQuestions(updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+
+    console.log(`📝 Added question locally (will sync when page changes)`);
+  };
+
+  const deleteQuestion = (questionId: string) => {
+    const filteredQuestions = questions.filter((q) => q.id !== questionId);
+    setQuestions(filteredQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: filteredQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
+
+    deleteQuestion1(questionId);
   };
 
   const setRating = (questionId: string, rating: number) => {
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId ? { ...q, selectedRating: rating } : q
-      )
+    console.log("Rating:", rating);
+    const updatedQuestions = questions.map((q) =>
+      q.id === questionId ? { ...q, selectedRating: rating } : q
     );
+
+    setQuestions(updatedQuestions);
+    console.log("Updated questions:", updatedQuestions);
+
+    // Update the page-specific cache and mark as unsaved
+    if (activeItem) {
+      setPageQuestions((prev) => ({
+        ...prev,
+        [activeItem]: updatedQuestions,
+      }));
+
+      setUnsavedChanges((prev) => ({
+        ...prev,
+        [activeItem]: true,
+      }));
+    }
   };
 
   const QuestionRenderer = ({
@@ -202,137 +485,151 @@ const FormBuilderPage: React.FC = () => {
   }) => {
     const questionNumber = `Q${index + 1}`;
 
-    const getAnswerTypeLabel = (type: string) => {
-      switch (type) {
-        case "short":
-          return "Short Answer";
-        case "long":
-          return "Long Answer";
-        case "multiple-choice":
-          return "Multiple Choice";
-        case "time":
-          return "Time";
-        case "rating":
-          return "Rating";
-        default:
-          return "Short Answer";
-      }
-    };
-
     return (
       <div className="question-container1">
-        {" "}
         <div className="question-container">
           <div className="question-header">
             <span className="question-number">{questionNumber}</span>
             <input
               type="text"
-              value={question.question}
+              defaultValue={question.question} // ✅ Use defaultValue like short answer
               className="question-input editable-question"
-              onChange={(e) =>
-                updateQuestion(question.id, "question", e.target.value)
-              }
+              onKeyDown={(e) => {
+                // ✅ Handle backspace for double-delete functionality
+                if (
+                  e.key === "Backspace" &&
+                  (e.target as HTMLInputElement).value === ""
+                ) {
+                  // If question is empty and backspace is pressed, delete the entire question
+                  e.preventDefault();
+                  deleteQuestion(question.id!);
+                }
+              }}
+              onBlur={(e) => {
+                // ✅ Update only when user finishes editing
+                updateQuestion(question.id!, "question", e.target.value);
+              }}
               placeholder="Enter your question here"
             />
             <select
+              key={`${question.id}-type`} // ✅ Stable key
               className="answer-type-dropdown"
               value={question.type}
               onChange={(e) =>
-                updateQuestion(question.id, "type", e.target.value)
+                updateQuestion(question.id!, "type", e.target.value)
               }
             >
-              <option
-                className="answer-type-option"
-                style={{ border: "1px solid #00000" }}
-                value="short"
-              >
-                Short Answer
-              </option>
-              <option className="answer-type-option" value="long">
-                Long Answer
-              </option>
-              <option className="answer-type-option" value="multiple-choice">
-                Multiple Choice
-              </option>
-              <option className="answer-type-option" value="multiple-choice">
-                Multiple Choice
-              </option>{" "}
-              <option className="answer-type-option" value="dropdown">
-                dropdowns
-              </option>
-              <option className="answer-type-option" value="date">
-                Date
-              </option>
-              <option className="answer-type-option" value="time">
-                Time
-              </option>
-              <option className="answer-type-option" value="checkbox">
-                Checkbox
-              </option>
-              <option className="answer-type-option" value="rating">
-                Rating
-              </option>
-              <option className="answer-type-option" value="LinearScale">
-                Linear Scale
-              </option>
-              <option className="answer-type-option" value="upload">
-                Upload
-              </option>
+              <option value="short">Short Answer</option>
+              <option value="long">Long Answer</option>
+              <option value="multiple-choice">Multiple Choice</option>
+              <option value="dropdowns">Dropdowns</option>
+              <option value="date">Date</option>
+              <option value="checkbox">Checkbox</option>
+              <option value="rating">Rating</option>
+              <option value="LinearScale">Linear Scale</option>
+              <option value="upload">Upload</option>
             </select>
           </div>
 
           <div className="answer-area">
-            {question.type === "short" && (
-              <div className="shohrt-answer-preview">
-                <textarea className="editable-answer-input" />
+            {/* Reference Media Display */}
+            {question.referenceMedia && (
+              <div className="reference-media" style={{ marginBottom: "16px" }}>
+                {question.referenceMedia.type === "image" ? (
+                  <img
+                    src={question.referenceMedia.url}
+                    alt={question.referenceMedia.description}
+                    style={{
+                      maxWidth: "300px",
+                      maxHeight: "200px",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <video
+                    src={question.referenceMedia.url}
+                    controls
+                    style={{ maxWidth: "300px", maxHeight: "200px" }}
+                  />
+                )}
+                <p>{question.referenceMedia.description}</p>
               </div>
             )}
 
+            {/* ✅ FIXED SHORT ANSWER INPUT */}
+            {question.type === "short" && (
+              // <div className="short-answer-preview">
+              <textarea
+                className="editable-answer-input"
+                defaultValue={question.placeholder || ""} // ✅ Use defaultValue instead
+                onBlur={(e) => {
+                  // Only update when user finishes editing (loses focus)
+                  updateQuestion(question.id!, "placeholder", e.target.value);
+                }}
+                placeholder="Enter placeholder text"
+                maxLength={question.maxLength}
+              />
+              // </div>
+            )}
+
             {question.type === "long" && (
-              <div className="long-ooanswer-preview">
-                <textarea className="editable-answer-textarea" rows={4} />
+              <div className="long-answer-previewW">
+                <textarea
+                  className="editable-answer-textarea"
+                  defaultValue={question.placeholder || ""} // ✅ Use defaultValue
+                  onBlur={(e) => {
+                    // ✅ Update only when user finishes editing
+                    updateQuestion(question.id!, "placeholder", e.target.value);
+                  }}
+                  placeholder="Set placeholder text"
+                  rows={4}
+                />
               </div>
             )}
 
             {question.type === "multiple-choice" && (
               <div className="multiple-choice-area">
-                <label className="question-option">
-                  <input type="radio" name="question-option" />
-                  <span className="question-option-label">Option 01</span>
-                </label>
-                <label className="question-option">
-                  <input type="radio" name="question-option" />
-                  <span className="question-option-label">Option 01</span>
-                </label>
                 {question.options?.map((option, idx) => (
-                  <div key={idx} className="option-row">
+                  <div
+                    key={`${question.id}-option-${idx}`}
+                    className="option-row"
+                  >
                     <input
                       type="radio"
                       name={`q${question.id}`}
                       className="radio-input"
                     />
                     <input
+                      key={`${question.id}-option-input-${idx}`} // ✅ Stable key
                       type="text"
-                      value={option}
+                      defaultValue={option}
+                      onKeyDown={(e) => {
+                        // ✅ Handle backspace for double-delete functionality
+                        if (
+                          e.key === "Backspace" &&
+                          (e.target as HTMLInputElement).value === ""
+                        ) {
+                          // If option is empty and backspace is pressed, delete the entire option
+                          e.preventDefault();
+                          removeOption(question.id!, idx);
+                        }
+                      }}
+                      // ✅ Use defaultValue
+                      onBlur={(e) => {
+                        // ✅ Update only when user finishes editing
+                        updateOption(question.id!, idx, e.target.value);
+                      }}
                       className="option-input editable"
-                      onChange={(e) =>
-                        updateOption(question.id, idx, e.target.value)
-                      }
+                      // onChange={(e) =>
+                      //   updateOption(question.id!, idx, e.target.value)
+                      // }
                       placeholder="Enter option text"
                     />
-                    {question.options && question.options.length > 2 && (
-                      <button
-                        className="delete-option-btn"
-                        onClick={() => removeOption(question.id, idx)}
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
                 ))}
                 <button
                   className="add-option-btn"
-                  onClick={() => addOption(question.id)}
+                  onClick={() => addOption(question.id!)}
                 >
                   + Add option
                 </button>
@@ -341,156 +638,48 @@ const FormBuilderPage: React.FC = () => {
 
             {question.type === "checkbox" && (
               <div className="multiple-choice-area">
-                <label className="question-option">
-                  <input
-                    type="checkbox"
-                    className="question-option-checkbox"
-                    name="question-option-checkbox"
-                  />
-                  <span className="question-option-label">Option 01</span>
-                </label>
-                <label className="question-option">
-                  <input
-                    type="checkbox"
-                    className="question-option-checkbox"
-                    name="question-option-checkbox"
-                  />
-                  <span className="question-option-label">Option 01</span>
-                </label>
                 {question.options?.map((option, idx) => (
-                  <div key={idx} className="option-row">
+                  <div
+                    key={`${question.id}-option-${idx}`}
+                    className="option-row"
+                  >
                     <input
-                      type="radio"
+                      type="checkbox"
                       name={`q${question.id}`}
-                      className="radio-input"
+                      className="question-option-checkbox"
                     />
                     <input
+                      key={`${question.id}-option-input-${idx}`} // ✅ Stable key
                       type="text"
-                      value={option}
+                      defaultValue={option} // ✅ Use defaultValue instead of value
+                      onKeyDown={(e) => {
+                        // ✅ Handle backspace for double-delete functionality
+                        if (
+                          e.key === "Backspace" &&
+                          (e.target as HTMLInputElement).value === "" &&
+                          question.options &&
+                          question.options.length > 2
+                        ) {
+                          // If option is empty and backspace is pressed, delete the entire option
+                          e.preventDefault();
+                          removeOption(question.id!, idx);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // ✅ Update only when user finishes editing
+                        updateOption(question.id!, idx, e.target.value);
+                      }}
                       className="option-input editable"
-                      onChange={(e) =>
-                        updateOption(question.id, idx, e.target.value)
-                      }
                       placeholder="Enter option text"
                     />
-                    {question.options && question.options.length > 2 && (
-                      <button
-                        className="delete-option-btn"
-                        onClick={() => removeOption(question.id, idx)}
-                      >
-                        ×
-                      </button>
-                    )}
                   </div>
                 ))}
                 <button
                   className="add-option-btn"
-                  onClick={() => addOption(question.id)}
+                  onClick={() => addOption(question.id!)}
                 >
                   + Add option
                 </button>
-              </div>
-            )}
-
-            {question.type === "checkbox" && (
-              <div className="multiple-choice-area">
-                <label className="question-option">
-                  <input
-                    type="checkbox"
-                    className="question-option-checkbox"
-                    name="question-option-checkbox"
-                  />
-                  <span className="question-option-label">Option 01</span>
-                </label>
-                <label className="question-option">
-                  <input
-                    type="checkbox"
-                    className="question-option-checkbox"
-                    name="question-option-checkbox"
-                  />
-                  <span className="question-option-label">Option 01</span>
-                </label>
-                {question.options?.map((option, idx) => (
-                  <div key={idx} className="option-row">
-                    <input
-                      type="radio"
-                      name={`q${question.id}`}
-                      className="radio-input"
-                    />
-                    <input
-                      type="text"
-                      value={option}
-                      className="option-input editable"
-                      onChange={(e) =>
-                        updateOption(question.id, idx, e.target.value)
-                      }
-                      placeholder="Enter option text"
-                    />
-                    {question.options && question.options.length > 2 && (
-                      <button
-                        className="delete-option-btn"
-                        onClick={() => removeOption(question.id, idx)}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  className="add-option-btn"
-                  onClick={() => addOption(question.id)}
-                >
-                  + Add option
-                </button>
-              </div>
-            )}
-
-            {question.type === "dropdown" && (
-              <div className="multiple-choice-area">
-                <select className="dropdown-preview">
-                  {question.options?.map((option, idx) => (
-                    <option key={idx} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                {question.options?.map((option, idx) => (
-                  <div key={idx} className="option-row">
-                    <input
-                      type="text"
-                      value={option}
-                      className="option-input editable"
-                      onChange={(e) =>
-                        updateOption(question.id, idx, e.target.value)
-                      }
-                      placeholder="Enter option text"
-                    />
-                    {question.options && question.options.length > 2 && (
-                      <button
-                        className="delete-option-btn"
-                        onClick={() => removeOption(question.id, idx)}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
-                <button
-                  className="add-option-btn"
-                  onClick={() => addOption(question.id)}
-                >
-                  + Add option
-                </button>
-              </div>
-            )}
-
-            {question.type === "time" && (
-              <div className="time-answer-preview">
-                <input
-                  type="time"
-                  className="editable-time-input"
-                  defaultValue="12:00"
-                />
               </div>
             )}
 
@@ -506,7 +695,7 @@ const FormBuilderPage: React.FC = () => {
                   {Array.from({ length: question.starCount || 5 }).map(
                     (_, idx) => (
                       <svg
-                        key={idx}
+                        key={`${question.id}-star-${idx}`} // ✅ Stable key
                         width="32"
                         height="32"
                         viewBox="0 0 24 24"
@@ -526,7 +715,7 @@ const FormBuilderPage: React.FC = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         style={{ cursor: "pointer" }}
-                        onClick={() => setRating(question.id, idx + 1)}
+                        onClick={() => setRating(question.id!, idx + 1)} // ✅ Added type assertion
                       >
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
@@ -537,18 +726,7 @@ const FormBuilderPage: React.FC = () => {
                   style={{ display: "flex", alignItems: "center", gap: "8px" }}
                 >
                   <span>Star Count:</span>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={question.starCount || 5}
-                    onChange={(e) =>
-                      updateQuestion(
-                        question.id,
-                        "starCount",
-                        Number(e.target.value)
-                      )
-                    }
+                  <p
                     style={{
                       width: "40px",
                       textAlign: "center",
@@ -559,10 +737,13 @@ const FormBuilderPage: React.FC = () => {
                       fontSize: "16px",
                       padding: "4px 0",
                     }}
-                  />
+                  >
+                    5
+                  </p>
                 </div>
               </div>
             )}
+
             {question.type === "date" && (
               <div
                 className="date-answer-preview"
@@ -571,7 +752,17 @@ const FormBuilderPage: React.FC = () => {
                 <input
                   type="date"
                   className="editable-date-input"
-                  placeholder="DD/MM/YYYY"
+                  defaultValue={
+                    question.dateAnswer
+                      ? typeof question.dateAnswer === "string"
+                        ? question.dateAnswer
+                        : question.dateAnswer.toISOString().slice(0, 10)
+                      : ""
+                  }
+                  onBlur={(e) => {
+                    // ✅ Update only when user finishes editing
+                    updateQuestion(question.id!, "dateAnswer", e.target.value);
+                  }}
                   style={{ fontSize: "18px", padding: "8px 12px" }}
                 />
                 <span style={{ display: "flex", alignItems: "center" }}>
@@ -601,6 +792,7 @@ const FormBuilderPage: React.FC = () => {
                 </span>
               </div>
             )}
+
             {question.type === "LinearScale" && (
               <div className="linear-scale-area" style={{ marginTop: 24 }}>
                 <div
@@ -610,50 +802,38 @@ const FormBuilderPage: React.FC = () => {
                     marginBottom: 16,
                   }}
                 >
-                  <input
-                    type="text"
-                    value={question.scaleStartLabel}
-                    onChange={(e) =>
-                      updateQuestion(
-                        question.id,
-                        "scaleStartLabel",
-                        e.target.value
-                      )
-                    }
+                  <p
                     style={{
                       background: "#E9F1F7",
                       border: "none",
                       borderRadius: "12px",
                       padding: "12px 32px",
                       fontWeight: 600,
-                      fontStyle: "italic",
+                      fontFamily: "Inter",
                       textAlign: "center",
                       fontSize: "18px",
                       width: "220px",
                     }}
-                  />
-                  <input
-                    type="text"
-                    value={question.scaleEndLabel}
-                    onChange={(e) =>
-                      updateQuestion(
-                        question.id,
-                        "scaleEndLabel",
-                        e.target.value
-                      )
-                    }
+                  >
+                    {" "}
+                    Scale Starting{" "}
+                  </p>
+                  <p
                     style={{
                       background: "#E9F1F7",
                       border: "none",
                       borderRadius: "12px",
                       padding: "12px 32px",
                       fontWeight: 600,
-                      fontStyle: "italic",
+                      fontFamily: "Inter",
                       textAlign: "center",
                       fontSize: "18px",
                       width: "220px",
                     }}
-                  />
+                  >
+                    {" "}
+                    Scale Ending
+                  </p>
                 </div>
                 <div
                   style={{
@@ -671,11 +851,11 @@ const FormBuilderPage: React.FC = () => {
                       type="range"
                       min={question.scaleMin}
                       max={question.scaleMax}
-                      value={question.scaleValue}
+                      value={question.selectedScale}
                       onChange={(e) =>
                         updateQuestion(
-                          question.id,
-                          "scaleValue",
+                          question.id!,
+                          "selectedScale",
                           Number(e.target.value)
                         )
                       }
@@ -692,8 +872,10 @@ const FormBuilderPage: React.FC = () => {
                       style={{
                         position: "absolute",
                         left: `calc(${
-                          ((question.scaleValue - question.scaleMin) /
-                            (question.scaleMax - question.scaleMin)) *
+                          (((question.scaleValue ?? 0) -
+                            (question.scaleMin ?? 0)) /
+                            ((question.scaleMax ?? 1) -
+                              (question.scaleMin ?? 0))) *
                           100
                         }% - 18px)`,
                         top: -28,
@@ -703,44 +885,16 @@ const FormBuilderPage: React.FC = () => {
                         pointerEvents: "none",
                       }}
                     >
-                      <div
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
-                          background: "#4BA3FD",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#fff",
-                          fontWeight: 700,
-                          fontSize: 18,
-                          boxShadow: "0 2px 8px rgba(75,163,253,0.15)",
-                          border: "3px solid #fff",
-                        }}
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#fff"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      </div>
                       <span
                         style={{
                           color: "#4BA3FD",
                           fontWeight: 600,
                           fontSize: 18,
-                          marginTop: 4,
+                          marginTop: 10,
+                          marginLeft: 200,
                         }}
                       >
-                        {question.scaleValue}
+                        {question.selectedScale}
                       </span>
                     </div>
                   </div>
@@ -750,135 +904,182 @@ const FormBuilderPage: React.FC = () => {
                 </div>
               </div>
             )}
+
             {question.type === "upload" && (
               <div className="upload-area" style={{ marginTop: 24 }}>
-                <div style={{ display: "flex", gap: 32, marginBottom: 16 }}>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <span>Number of Files:</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      value={question.maxFiles || 1}
-                      onChange={(e) =>
-                        updateQuestion(
-                          question.id,
-                          "maxFiles",
-                          Number(e.target.value)
-                        )
-                      }
-                      style={{
-                        width: "48px",
-                        textAlign: "center",
-                        borderRadius: "10px",
-                        border: "none",
-                        background: "#E9F1F7",
-                        fontWeight: 600,
-                        fontSize: "16px",
-                        padding: "4px 0",
-                      }}
-                    />
-                  </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <span>Max File Size:</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={question.maxFileSizeMb || 1}
-                      onChange={(e) =>
-                        updateQuestion(
-                          question.id,
-                          "maxFileSizeMb",
-                          Number(e.target.value)
-                        )
-                      }
-                      style={{
-                        width: "48px",
-                        textAlign: "center",
-                        borderRadius: "10px",
-                        border: "none",
-                        background: "#E9F1F7",
-                        fontWeight: 600,
-                        fontSize: "16px",
-                        padding: "4px 0",
-                        marginRight: 4,
-                      }}
-                    />
-                    <span
-                      style={{
-                        background: "#E9F1F7",
-                        borderRadius: "10px",
-                        padding: "4px 12px",
-                        fontWeight: 600,
-                        fontSize: "16px",
-                      }}
-                    >
-                      mb
-                    </span>
-                  </div>
-                </div>
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 16,
-                    maxWidth: 520,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 32,
+                    marginBottom: 0,
                   }}
                 >
-                  {[
-                    "image",
-                    "pdf",
-                    "ppt",
-                    "document",
-                    "video",
-                    "zip",
-                    "audio",
-                    "spreadsheet",
-                  ].map((type) => (
-                    <label
-                      key={type}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        fontWeight: 500,
-                        fontSize: 16,
-                      }}
+                  {/* Left column: Number of Files and Max File Size */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                      minWidth: 140,
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 12 }}
                     >
+                      <span style={{ minWidth: 110 }}>Number of Files:</span>
                       <input
-                        type="checkbox"
-                        checked={question.allowedTypes?.includes(type) || false}
-                        onChange={(e) => {
-                          const allowed = question.allowedTypes || [];
-                          if (e.target.checked) {
-                            updateQuestion(question.id, "allowedTypes", [
-                              ...allowed,
-                              type,
-                            ]);
-                          } else {
-                            updateQuestion(
-                              question.id,
-                              "allowedTypes",
-                              allowed.filter((t) => t !== type)
-                            );
-                          }
-                        }}
+                        key={`${question.id}-max-files`}
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={question.maxFiles || 1}
+                        onChange={(e) =>
+                          updateQuestion(
+                            question.id!,
+                            "maxFiles",
+                            Number(e.target.value)
+                          )
+                        }
                         style={{
-                          width: 18,
-                          height: 18,
-                          accentColor: "#4BA3FD",
-                          borderRadius: 4,
+                          width: 48,
+                          textAlign: "center",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#E9F1F7",
+                          fontWeight: 600,
+                          fontSize: 16,
+                          padding: "4px 0",
                         }}
                       />
-                      {type}
-                    </label>
-                  ))}
+                    </div>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 12 }}
+                    >
+                      <span style={{ minWidth: 110 }}>Max File Size:</span>
+                      <input
+                        key={`${question.id}-max-size`}
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={question.maxFileSizeMb || 1}
+                        onChange={(e) =>
+                          updateQuestion(
+                            question.id!,
+                            "maxFileSizeMb",
+                            Number(e.target.value)
+                          )
+                        }
+                        style={{
+                          width: 48,
+                          textAlign: "center",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#E9F1F7",
+                          fontWeight: 600,
+                          fontSize: 16,
+                          padding: "4px 0",
+                          marginRight: 4,
+                        }}
+                      />
+                      <span
+                        style={{
+                          background: "#E9F1F7",
+                          borderRadius: 10,
+                          padding: "4px 12px",
+                          fontWeight: 600,
+                          fontSize: 16,
+                          marginLeft: -8,
+                        }}
+                      >
+                        mb
+                      </span>
+                    </div>
+                  </div>
+                  {/* Right column: File type checkboxes */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, 1fr)",
+                      gap: 16,
+                      maxWidth: 520,
+                      width: "100%",
+                    }}
+                  >
+                    {[
+                      "image",
+                      "pdf",
+                      "ppt",
+                      "document",
+                      "video",
+                      "zip",
+                      "audio",
+                      "spreadsheet",
+                    ].map((type) => (
+                      <label
+                        key={`${question.id}-file-type-${type}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          fontWeight: 500,
+                          fontSize: 16,
+                          cursor: "pointer",
+                          userSelect: "none",
+                          margin: 0,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={
+                            question.allowedTypes?.includes(type) || false
+                          }
+                          onChange={(e) => {
+                            const allowed = question.allowedTypes || [];
+                            if (e.target.checked) {
+                              updateQuestion(question.id!, "allowedTypes", [
+                                ...allowed,
+                                type,
+                              ]);
+                            } else {
+                              updateQuestion(
+                                question.id!,
+                                "allowedTypes",
+                                allowed.filter((t) => t !== type)
+                              );
+                            }
+                          }}
+                          style={{
+                            width: 18,
+                            height: 18,
+                            accentColor: "#4BA3FD",
+                            borderRadius: 4,
+                            marginRight: 4,
+                          }}
+                        />
+                        {type}
+                      </label>
+                    ))}
+                  </div>
                 </div>
+                <select
+                  key={`${question.id}-type`} // ✅ Stable key
+                  className="answer-type-dropdown"
+                  value={question.type}
+                  onChange={(e) =>
+                    updateQuestion(question.id!, "type", e.target.value)
+                  }
+                >
+                  <option value="short">Short Answer</option>
+                  <option value="long">Long Answer</option>
+                  <option value="multiple-choice">Multiple Choice</option>
+                  <option value="dropdowns">Dropdowns</option>
+                  <option value="date">Date</option>
+                  <option value="checkbox">Checkbox</option>
+                  <option value="rating">Rating</option>
+                  <option value="LinearScale">Linear Scale</option>
+                  <option value="upload">Upload</option>
+                </select>
               </div>
             )}
           </div>
@@ -898,20 +1099,30 @@ const FormBuilderPage: React.FC = () => {
       <main className="form-main-content">
         <div className="form-content-wrapper">
           <FormHeader title={formTitle} />
+
           <div className="form-builder-content">
             <div className="form-builder-main">
-              {questions.length === 0 ? (
+              {loading ? (
+                <div className="loading">Loading questions...</div>
+              ) : questions.length === 0 ? (
                 <div className="empty-canvas">
                   <p>Click "Add Question" to start building your form</p>
+                  <p>
+                    <strong>Current Page:</strong>{" "}
+                    {allPages.find((p) => p._id === activeItem)?.title ||
+                      "No page selected"}
+                  </p>
                 </div>
               ) : (
-                questions.map((question, index) => (
-                  <QuestionRenderer
-                    key={question.id}
-                    question={question}
-                    index={index}
-                  />
-                ))
+                <>
+                  {questions.map((question, index) => (
+                    <QuestionRenderer
+                      key={question.id}
+                      question={question}
+                      index={index}
+                    />
+                  ))}
+                </>
               )}
             </div>
             <div>
