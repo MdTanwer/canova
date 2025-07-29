@@ -44,6 +44,9 @@ export interface IQuestion extends Document {
   scaleStartLabel?: string;
   scaleEndLabel?: string;
   dateAnswer?: Date;
+  backgroundColor?: string;
+  correctAnswer?: number; // For single-choice (multiple-choice, dropdowns)
+  correctAnswers?: number[];
 
   selectedRating?: number;
   // Upload questions (when user uploads)
@@ -85,6 +88,8 @@ const QuestionSchema = new Schema<IQuestion>(
       required: true,
       trim: true,
     },
+    correctAnswer: { type: Number }, // For single-choice (multiple-choice, dropdowns)
+    correctAnswers: { type: [Number] },
     dateAnswer: {
       type: Date,
     },
@@ -97,6 +102,7 @@ const QuestionSchema = new Schema<IQuestion>(
       default: false,
     },
     minLength: Number,
+    backgroundColor: String,
 
     // 🆕 Reference media field
     referenceMedia: {

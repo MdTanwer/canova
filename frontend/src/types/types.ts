@@ -64,6 +64,8 @@ export interface Question {
   dateAnswer?: Date | string;
   maxFileSizeMb?: number;
   allowedTypes?: string[];
+  correctAnswer?: number;
+  correctAnswers?: number[];
 
   // Reference media
   referenceMedia?: {

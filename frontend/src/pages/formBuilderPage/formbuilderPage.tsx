@@ -140,6 +140,9 @@ const FormBuilderPage: React.FC = () => {
     setActiveItem(item);
   };
 
+  // const backgroundColor = () => {
+  //   console.log("");
+  // };
   const handleAddText = () => {
     console.log("Add Text clicked");
   };
@@ -218,6 +221,8 @@ const FormBuilderPage: React.FC = () => {
           allowedTypes: question.allowedTypes,
           dateAnswer: question.dateAnswer,
           selectedScale: question.selectedScale,
+          correctAnswer: question.correctAnswer,
+          correctAnswers: question.correctAnswers,
         };
 
         const result = (await createQuestion(questionData)) as {
@@ -356,11 +361,38 @@ const FormBuilderPage: React.FC = () => {
   };
 
   const removeOption = (questionId: string, optionIndex: number) => {
-    const updatedQuestions = questions.map((q) =>
-      q.id === questionId && q.options && q.options.length > 2
-        ? { ...q, options: q.options.filter((_, idx) => idx !== optionIndex) }
-        : q
-    );
+    const updatedQuestions = questions.map((q) => {
+      if (q.id === questionId && q.options && q.options.length > 2) {
+        const newOptions = q.options.filter((_, idx) => idx !== optionIndex);
+
+        // ✅ Handle correct answer adjustment
+        let updatedQuestion = { ...q, options: newOptions };
+
+        if (q.type === "multiple-choice" || q.type === "dropdowns") {
+          // Handle single correct answer
+          if (q.correctAnswer === optionIndex) {
+            // Reset correct answer if deleted option was correct
+            updatedQuestion.correctAnswer = undefined;
+          } else if (
+            q.correctAnswer !== undefined &&
+            q.correctAnswer > optionIndex
+          ) {
+            // Adjust index if correct answer is after deleted option
+            updatedQuestion.correctAnswer = q.correctAnswer - 1;
+          }
+        } else if (q.type === "checkbox") {
+          // Handle multiple correct answers
+          if (q.correctAnswers) {
+            updatedQuestion.correctAnswers = q.correctAnswers
+              .filter((idx) => idx !== optionIndex) // Remove deleted option
+              .map((idx) => (idx > optionIndex ? idx - 1 : idx)); // Adjust indices
+          }
+        }
+
+        return updatedQuestion;
+      }
+      return q;
+    });
 
     setQuestions(updatedQuestions);
 
@@ -395,6 +427,15 @@ const FormBuilderPage: React.FC = () => {
         type === "checkbox" ||
         type === "dropdowns"
           ? ["Option 01", "Option 02"]
+          : undefined,
+      // ✅ Initialize correct answer fields
+      correctAnswer:
+        type === "multiple-choice" || type === "dropdowns"
+          ? undefined // Will be set when user clicks radio button
+          : undefined,
+      correctAnswers:
+        type === "checkbox"
+          ? [] // Empty array for multi-select
           : undefined,
       starCount: type === "rating" ? 5 : undefined,
       selectedRating: type === "rating" ? 0 : undefined,
@@ -598,33 +639,46 @@ const FormBuilderPage: React.FC = () => {
                       type="radio"
                       name={`q${question.id}`}
                       className="radio-input"
+                      // ✅ Check if this option is the correct answer
+                      checked={question.correctAnswer === idx}
+                      onChange={() => {
+                        // ✅ Update the correct answer when radio is selected
+                        updateQuestion(question.id!, "correctAnswer", idx);
+                      }}
                     />
                     <input
-                      key={`${question.id}-option-input-${idx}`} // ✅ Stable key
+                      key={`${question.id}-option-input-${idx}`}
                       type="text"
                       defaultValue={option}
                       onKeyDown={(e) => {
-                        // ✅ Handle backspace for double-delete functionality
                         if (
                           e.key === "Backspace" &&
                           (e.target as HTMLInputElement).value === ""
                         ) {
-                          // If option is empty and backspace is pressed, delete the entire option
                           e.preventDefault();
                           removeOption(question.id!, idx);
                         }
                       }}
-                      // ✅ Use defaultValue
                       onBlur={(e) => {
-                        // ✅ Update only when user finishes editing
                         updateOption(question.id!, idx, e.target.value);
                       }}
                       className="option-input editable"
-                      // onChange={(e) =>
-                      //   updateOption(question.id!, idx, e.target.value)
-                      // }
                       placeholder="Enter option text"
                     />
+                    {/* ✅ Visual indicator for correct answer */}
+                    {question.correctAnswer === idx && (
+                      <span
+                        className="correct-indicator"
+                        style={{
+                          marginLeft: "8px",
+                          color: "#4CAF50",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ✓ Correct
+                      </span>
+                    )}
                   </div>
                 ))}
                 <button
@@ -633,6 +687,22 @@ const FormBuilderPage: React.FC = () => {
                 >
                   + Add option
                 </button>
+
+                {/* ✅ Instructions for setting correct answer */}
+                <div
+                  className="correct-answer-help"
+                  style={{
+                    marginTop: "12px",
+                    padding: "8px 12px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  💡 Click the radio button next to an option to mark it as the
+                  correct answer
+                </div>
               </div>
             )}
 
@@ -647,31 +717,69 @@ const FormBuilderPage: React.FC = () => {
                       type="checkbox"
                       name={`q${question.id}`}
                       className="question-option-checkbox"
+                      // ✅ Check if this option is in the correct answers array
+                      checked={question.correctAnswers?.includes(idx) || false}
+                      onChange={(e) => {
+                        // ✅ Update the correct answers array when checkbox is toggled
+                        const currentCorrectAnswers =
+                          question.correctAnswers || [];
+                        let updatedCorrectAnswers;
+
+                        if (e.target.checked) {
+                          // Add this option to correct answers
+                          updatedCorrectAnswers = [
+                            ...currentCorrectAnswers,
+                            idx,
+                          ];
+                        } else {
+                          // Remove this option from correct answers
+                          updatedCorrectAnswers = currentCorrectAnswers.filter(
+                            (answerIdx) => answerIdx !== idx
+                          );
+                        }
+
+                        updateQuestion(
+                          question.id!,
+                          "correctAnswers",
+                          updatedCorrectAnswers
+                        );
+                      }}
                     />
                     <input
-                      key={`${question.id}-option-input-${idx}`} // ✅ Stable key
+                      key={`${question.id}-option-input-${idx}`}
                       type="text"
-                      defaultValue={option} // ✅ Use defaultValue instead of value
+                      defaultValue={option}
                       onKeyDown={(e) => {
-                        // ✅ Handle backspace for double-delete functionality
                         if (
                           e.key === "Backspace" &&
                           (e.target as HTMLInputElement).value === "" &&
                           question.options &&
                           question.options.length > 2
                         ) {
-                          // If option is empty and backspace is pressed, delete the entire option
                           e.preventDefault();
                           removeOption(question.id!, idx);
                         }
                       }}
                       onBlur={(e) => {
-                        // ✅ Update only when user finishes editing
                         updateOption(question.id!, idx, e.target.value);
                       }}
                       className="option-input editable"
                       placeholder="Enter option text"
                     />
+                    {/* ✅ Visual indicator for correct answers */}
+                    {question.correctAnswers?.includes(idx) && (
+                      <span
+                        className="correct-indicator"
+                        style={{
+                          marginLeft: "8px",
+                          color: "#4CAF50",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ✓ Correct
+                      </span>
+                    )}
                   </div>
                 ))}
                 <button
@@ -680,6 +788,29 @@ const FormBuilderPage: React.FC = () => {
                 >
                   + Add option
                 </button>
+
+                {/* ✅ Instructions for setting correct answers */}
+                <div
+                  className="correct-answer-help"
+                  style={{
+                    marginTop: "12px",
+                    padding: "8px 12px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  💡 Check the boxes next to options to mark them as correct
+                  answers (multiple selections allowed)
+                  {question.correctAnswers &&
+                    question.correctAnswers.length > 0 && (
+                      <div style={{ marginTop: "4px", fontWeight: "500" }}>
+                        Selected: {question.correctAnswers.length} correct
+                        answer{question.correctAnswers.length !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                </div>
               </div>
             )}
 

@@ -68,6 +68,9 @@ export const createQuestion = async (req: Request, res: Response) => {
       selectedRating,
       dateAnswer,
       selectedScale,
+      backgroundColor,
+      correctAnswer,
+      correctAnswers,
 
       // Reference media description (if file uploaded)
       referenceMediaDescription,
@@ -145,6 +148,60 @@ export const createQuestion = async (req: Request, res: Response) => {
           });
         }
         questionData.options = options.map((opt: string) => opt.trim());
+
+        // ✅ Handle correct answers for option-based questions
+        if (type === "multiple-choice" || type === "dropdowns") {
+          // Single correct answer
+          if (correctAnswer !== undefined) {
+            if (
+              typeof correctAnswer !== "number" ||
+              correctAnswer < 0 ||
+              correctAnswer >= options.length
+            ) {
+              return res.status(400).json({
+                success: false,
+                message: "correctAnswer must be a valid option index",
+              });
+            }
+            questionData.correctAnswer = correctAnswer;
+          }
+
+          // Prevent using correctAnswers for single-choice
+          if (correctAnswers && correctAnswers.length > 0) {
+            return res.status(400).json({
+              success: false,
+              message:
+                "Use correctAnswer (not correctAnswers) for single-choice questions",
+            });
+          }
+        } else if (type === "checkbox") {
+          // Multiple correct answers
+          if (correctAnswers && Array.isArray(correctAnswers)) {
+            // Validate all indices are within options range
+            const invalidIndices = correctAnswers.filter(
+              (idx: number) =>
+                typeof idx !== "number" || idx < 0 || idx >= options.length
+            );
+
+            if (invalidIndices.length > 0) {
+              return res.status(400).json({
+                success: false,
+                message: "All correctAnswers must be valid option indices",
+              });
+            }
+
+            questionData.correctAnswers = correctAnswers;
+          }
+
+          // Prevent using correctAnswer for multi-choice
+          if (correctAnswer !== undefined) {
+            return res.status(400).json({
+              success: false,
+              message:
+                "Use correctAnswers (not correctAnswer) for multi-choice questions",
+            });
+          }
+        }
         break;
 
       case "short":
@@ -152,11 +209,14 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.placeholder = placeholder;
         questionData.maxLength = maxLength;
         questionData.minLength = minLength;
+        questionData.backgroundColor = backgroundColor;
+
         break;
 
       case "rating":
         questionData.starCount = starCount || 5;
         questionData.selectedRating = selectedRating;
+        questionData.backgroundColor = backgroundColor;
         if (!selectedRating) {
           return res.status(400).json({
             success: false,
@@ -166,6 +226,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         break;
       case "date":
         questionData.dateAnswer = dateAnswer;
+        questionData.backgroundColor = backgroundColor;
         if (!dateAnswer) {
           return res.status(400).json({
             success: false,
@@ -175,6 +236,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         break;
 
       case "LinearScale":
+        questionData.backgroundColor = backgroundColor;
         questionData.selectedScale = selectedScale;
         questionData.scaleMin = scaleMin || 0;
         questionData.scaleMax = scaleMax || 10;
@@ -190,6 +252,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         break;
 
       case "upload":
+        questionData.backgroundColor = backgroundColor;
         questionData.maxFiles = maxFiles || 1;
         questionData.maxFileSizeMb = maxFileSizeMb || 5;
         questionData.allowedTypes = allowedTypes || ["image"];
