@@ -88,3 +88,128 @@ export const getFormNameById = async (
     next(createError("Failed to fetch form name", 500));
   }
 };
+
+// POST: Publish form (requires authentication)
+export const formPublich = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    const { isPublic, allowedEmails } = req.body;
+
+    // Find form and check if user is owner
+    const form = await Form.findById(formId);
+
+    if (!form) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Form not found" });
+    }
+
+    if (form.createdBy.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only form owner can publish" });
+    }
+
+    // Update form with publish settings
+    const updateData: any = {
+      status: "published",
+      publishedAt: new Date(),
+      isPublic: isPublic || false,
+      allowedEmails: [],
+    };
+
+    // If not public, set allowed emails
+    if (!isPublic && allowedEmails && Array.isArray(allowedEmails)) {
+      updateData.allowedEmails = allowedEmails.map((email: string) =>
+        email.toLowerCase().trim()
+      );
+    }
+
+    const updatedForm = await Form.findByIdAndUpdate(formId, updateData, {
+      new: true,
+    });
+
+    res.json({
+      success: true,
+      message: "Form published successfully",
+      uniqueUrl: updatedForm?.uniqueUrl,
+      shareableLink: `${process.env.FRONTEND_URL || "http://localhost:3000"}/form/${updatedForm?.uniqueUrl}`,
+      isPublic: updatedForm?.isPublic,
+      allowedEmails: updatedForm?.allowedEmails,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getFormByUniqueUrl = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const form = req.form;
+
+    // Return form data (access already validated by middleware)
+    res.json({
+      success: true,
+      form: {
+        id: form._id,
+        title: form.title,
+        description: form.description,
+        PageIds: form.PageIds,
+        isPublic: form.isPublic,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST: Verify browser email for restricted forms
+export const verifyBrowserEmail = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { uniqueUrl } = req.params;
+    const { browserEmail } = req.body; // Frontend will send detected browser email
+
+    const form = await Form.findOne({ uniqueUrl, status: "published" });
+
+    if (!form) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Form not found" });
+    }
+
+    if (form.isPublic) {
+      return res.status(400).json({
+        success: false,
+        message: "This form is public, no verification needed",
+      });
+    }
+
+    if (!form.allowedEmails.includes(browserEmail.toLowerCase())) {
+      return res.status(403).json({
+        success: false,
+        message: "Your browser email is not authorized to access this form",
+      });
+    }
+
+    // Store verified browser email in session
+    req.session.verifiedBrowserEmail = browserEmail.toLowerCase();
+
+    res.json({
+      success: true,
+      message: "Browser email verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

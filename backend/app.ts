@@ -11,10 +11,22 @@ import cookieParser from "cookie-parser";
 import { formRouter } from "./routers/formRoutes";
 import { questionRouter } from "./routers/questionRoutes";
 import { conditionRouter } from "./routers/conditionRoutes";
+import session from "express-session";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "session-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+    },
+  })
+);
 // Security middleware
 app.use(helmet());
 app.use(

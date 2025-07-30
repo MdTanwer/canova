@@ -1,5 +1,6 @@
 import React from "react";
 import "../../styles/formBuilder/FormHeader.css";
+import "../../styles/formBuilder/previeModel/PreveiwModel.css";
 
 interface FormHeaderProps {
   title?: string;

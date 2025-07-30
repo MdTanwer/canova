@@ -1,4 +1,3 @@
-// ===== CONDITION CONTROLLER =====
 import { Request, Response } from "express";
 import { Answer, Question } from "../models/Question";
 import { Condition } from "../models/condition";
@@ -169,92 +168,6 @@ export class ConditionController {
       });
     }
   }
-
-  // Get conditions by form and page
-  //   static async getConditions(req: Request, res: Response) {
-  //     try {
-  //       const { formId, pageId } = req.params;
-
-  //       const conditions = await Condition.find({
-  //         formId,
-  //         pageId,
-  //       })
-  //         .populate("questionId", "question options")
-  //         .populate("sourcePage", "title order")
-  //         .populate("destinationPage", "title order");
-
-  //       res.status(200).json({
-  //         success: true,
-  //         data: conditions,
-  //       });
-  //     } catch (error) {
-  //       res.status(500).json({
-  //         success: false,
-  //         message: "Error fetching conditions",
-  //         error,
-  //       });
-  //     }
-  //   }
-
-  // Update condition
-  //   static async updateCondition(req: Request, res: Response) {
-  //     try {
-  //       const { conditionId } = req.params;
-  //       const updates = req.body;
-
-  //       const condition = await Condition.findByIdAndUpdate(
-  //         conditionId,
-  //         updates,
-  //         { new: true }
-  //       );
-
-  //       if (!condition) {
-  //         return res.status(404).json({
-  //           success: false,
-  //           message: "Condition not found",
-  //         });
-  //       }
-
-  //       res.status(200).json({
-  //         success: true,
-  //         message: "Condition updated successfully",
-  //         data: condition,
-  //       });
-  //     } catch (error) {
-  //       res.status(500).json({
-  //         success: false,
-  //         message: "Error updating condition",
-  //         error,
-  //       });
-  //     }
-  //   }
-
-  // Delete condition
-  //   static async deleteCondition(req: Request, res: Response) {
-  //     try {
-  //       const { conditionId } = req.params;
-
-  //       const condition = await Condition.findByIdAndDelete(conditionId);
-
-  //       if (!condition) {
-  //         return res.status(404).json({
-  //           success: false,
-  //           message: "Condition not found",
-  //         });
-  //       }
-
-  //       res.status(200).json({
-  //         success: true,
-  //         message: "Condition deleted successfully",
-  //       });
-  //     } catch (error) {
-  //       res.status(500).json({
-  //         success: false,
-  //         message: "Error deleting condition",
-  //         error,
-  //       });
-  //     }
-  //   }
 
   // MAIN LOGIC: Evaluate conditions and get next page
   static async evaluateConditions(req: Request, res: Response) {

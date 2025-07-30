@@ -4,6 +4,9 @@ import {
   createRandomForm,
   getFormNameById,
   getPagesByFormId,
+  getFormByUniqueUrl,
+  verifyBrowserEmail,
+  formPublich,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 export const formRouter = express.Router();
@@ -14,3 +17,7 @@ formRouter.post("/", createRandomForm);
 formRouter.get("/pages/:formId", getPagesByFormId);
 formRouter.post("/add-page/:formId", createNextPage);
 formRouter.get("/:formId", getFormNameById);
+
+formRouter.get("/access/:uniqueUrl", getFormByUniqueUrl);
+formRouter.post("/verify-browser-email/:uniqueUrl", verifyBrowserEmail);
+formRouter.post("/publish/:formId", formPublich);

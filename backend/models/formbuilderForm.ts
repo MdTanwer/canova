@@ -1,4 +1,5 @@
 import { Schema, model, Document } from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 export interface IForm extends Document {
   _id: string;
@@ -12,6 +13,10 @@ export interface IForm extends Document {
   createdAt: Date;
   updatedAt: Date;
   publishedAt?: Date;
+  // New fields for access control
+  isPublic: boolean;
+  allowedEmails: string[];
+  uniqueUrl: string;
 }
 
 const FormSchema = new Schema<IForm>(
@@ -46,6 +51,26 @@ const FormSchema = new Schema<IForm>(
       type: Schema.Types.ObjectId,
       ref: "Project",
     },
+
+    // New access control fields
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
+
+    allowedEmails: [
+      {
+        type: String,
+        lowercase: true,
+        trim: true,
+      },
+    ],
+
+    uniqueUrl: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     version: {
       type: Number,
       default: 1,
@@ -59,5 +84,13 @@ const FormSchema = new Schema<IForm>(
     timestamps: true,
   }
 );
+
+// Generate unique URL when form is published
+FormSchema.pre("save", function (next) {
+  if (this.status === "published" && !this.uniqueUrl) {
+    this.uniqueUrl = uuidv4();
+  }
+  next();
+});
 
 export const Form = model<IForm>("Form", FormSchema);

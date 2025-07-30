@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { Form } from "../models/formbuilderForm";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production"; // This should be in an environment variable
@@ -27,4 +28,48 @@ export const verifyToken = (
     (req as any).user = decoded.user; // Now req.user contains the full user data (excluding password)
     next();
   });
+};
+
+export const checkFormAccess = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { uniqueUrl } = req.params;
+
+    const form = await Form.findOne({ uniqueUrl, status: "published" });
+
+    if (!form) {
+      return res.status(404).json({
+        success: false,
+        message: "Form not found",
+      });
+    }
+
+    req.form = form;
+
+    // If form is public, allow access
+    if (form.isPublic) {
+      return next();
+    }
+
+    // If form has email restrictions, check session for verified browser email
+    if (form.allowedEmails.length > 0) {
+      const verifiedEmail = req.session?.verifiedBrowserEmail;
+
+      if (!verifiedEmail || !form.allowedEmails.includes(verifiedEmail)) {
+        return res.status(401).json({
+          success: false,
+          message: "Please login with an authorized email account",
+          requiresBrowserLogin: true,
+          allowedEmails: form.allowedEmails,
+        });
+      }
+    }
+
+    next();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };

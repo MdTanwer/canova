@@ -366,7 +366,7 @@ const FormBuilderPage: React.FC = () => {
         const newOptions = q.options.filter((_, idx) => idx !== optionIndex);
 
         // ✅ Handle correct answer adjustment
-        let updatedQuestion = { ...q, options: newOptions };
+        const updatedQuestion = { ...q, options: newOptions };
 
         if (q.type === "multiple-choice" || q.type === "dropdowns") {
           // Handle single correct answer
@@ -471,7 +471,7 @@ const FormBuilderPage: React.FC = () => {
       }));
     }
 
-    console.log(`📝 Added question locally (will sync when page changes)`);
+    console.log(` Added question locally (will sync when page changes)`);
   };
 
   const deleteQuestion = (questionId: string) => {
@@ -563,7 +563,7 @@ const FormBuilderPage: React.FC = () => {
               <option value="short">Short Answer</option>
               <option value="long">Long Answer</option>
               <option value="multiple-choice">Multiple Choice</option>
-              <option value="dropdowns">Dropdowns</option>
+
               <option value="date">Date</option>
               <option value="checkbox">Checkbox</option>
               <option value="rating">Rating</option>
@@ -1218,6 +1218,10 @@ const FormBuilderPage: React.FC = () => {
       </div>
     );
   };
+  const [showPreview, setShowPreview] = useState(false);
+  const handlePreview = () => {
+    setShowPreview(true);
+  };
 
   return (
     <div className="form-container">
@@ -1229,7 +1233,7 @@ const FormBuilderPage: React.FC = () => {
       />
       <main className="form-main-content">
         <div className="form-content-wrapper">
-          <FormHeader title={formTitle} />
+          <FormHeader title={formTitle} onPreview={handlePreview} />
 
           <div className="form-builder-content">
             <div className="form-builder-main">
@@ -1273,8 +1277,273 @@ const FormBuilderPage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <PreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        questions={questions}
+        formTitle={formTitle}
+        currentPageTitle={
+          allPages.find((p) => p._id === activeItem)?.title || "Current Page"
+        }
+      />
     </div>
   );
 };
 
 export default FormBuilderPage;
+
+interface PreviewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  questions: Question[];
+  formTitle: string;
+  currentPageTitle: string;
+}
+
+const PreviewModal: React.FC<PreviewModalProps> = ({
+  isOpen,
+  onClose,
+  questions,
+  formTitle,
+  currentPageTitle,
+}) => {
+  const [previewAnswers, setPreviewAnswers] = useState<Record<string, any>>({});
+
+  if (!isOpen) return null;
+
+  const handleAnswerChange = (questionId: string, value: any) => {
+    setPreviewAnswers((prev) => ({
+      ...prev,
+      [questionId]: value,
+    }));
+  };
+
+  const PreviewQuestion = ({
+    question,
+    index,
+  }: {
+    question: Question;
+    index: number;
+  }) => {
+    const questionNumber = `Q${index + 1}`;
+    const answer = previewAnswers[question.id!];
+
+    return (
+      <div className="preview-question">
+        <div className="preview-question-header">
+          <span className="preview-question-number">{questionNumber}</span>
+          <h3 className="preview-question-title">
+            {question.question}
+            {question.required && (
+              <span className="preview-required-indicator"> *</span>
+            )}
+          </h3>
+        </div>
+
+        {/* Short Answer */}
+        {question.type === "short" && (
+          <input
+            type="text"
+            className="preview-text-input"
+            placeholder={question.placeholder || "Your answer"}
+            value={answer || ""}
+            onChange={(e) => handleAnswerChange(question.id!, e.target.value)}
+            maxLength={question.maxLength}
+          />
+        )}
+
+        {/* Long Answer */}
+        {question.type === "long" && (
+          <textarea
+            className="preview-textarea"
+            placeholder={question.placeholder || "Your detailed answer"}
+            value={answer || ""}
+            onChange={(e) => handleAnswerChange(question.id!, e.target.value)}
+            rows={4}
+          />
+        )}
+
+        {/* Multiple Choice */}
+        {question.type === "multiple-choice" && (
+          <div className="preview-option-group">
+            {question.options?.map((option, idx) => (
+              <label key={idx} className="preview-option-item">
+                <input
+                  type="radio"
+                  className="preview-radio-input"
+                  name={`preview-${question.id}`}
+                  value={idx}
+                  checked={answer === idx}
+                  onChange={() => handleAnswerChange(question.id!, idx)}
+                />
+                <span className="preview-option-text">{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {/* Checkbox */}
+        {question.type === "checkbox" && (
+          <div className="preview-option-group">
+            {question.options?.map((option, idx) => (
+              <label key={idx} className="preview-option-item">
+                <input
+                  type="checkbox"
+                  className="preview-checkbox-input"
+                  checked={(answer || []).includes(idx)}
+                  onChange={(e) => {
+                    const currentAnswers = answer || [];
+                    if (e.target.checked) {
+                      handleAnswerChange(question.id!, [
+                        ...currentAnswers,
+                        idx,
+                      ]);
+                    } else {
+                      handleAnswerChange(
+                        question.id!,
+                        currentAnswers.filter((a: number) => a !== idx)
+                      );
+                    }
+                  }}
+                />
+                <span className="preview-option-text">{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {/* Rating */}
+        {question.type === "rating" && (
+          <div className="preview-rating-container">
+            {Array.from({ length: question.starCount || 5 }).map((_, idx) => (
+              <svg
+                key={idx}
+                className={`preview-rating-star ${
+                  answer && idx < answer ? "filled" : "empty"
+                }`}
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                onClick={() => handleAnswerChange(question.id!, idx + 1)}
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            ))}
+          </div>
+        )}
+
+        {/* Date */}
+        {question.type === "date" && (
+          <input
+            type="date"
+            className="preview-date-input"
+            value={answer || ""}
+            onChange={(e) => handleAnswerChange(question.id!, e.target.value)}
+          />
+        )}
+
+        {/* Linear Scale */}
+        {question.type === "LinearScale" && (
+          <div className="preview-scale-container">
+            <div className="preview-scale-labels">
+              <span>{question.scaleStartLabel || "Low"}</span>
+              <span>{question.scaleEndLabel || "High"}</span>
+            </div>
+            <div className="preview-scale-input-container">
+              <span className="preview-scale-number">{question.scaleMin}</span>
+              <input
+                type="range"
+                className="preview-scale-range"
+                min={question.scaleMin}
+                max={question.scaleMax}
+                value={answer || question.scaleMin}
+                onChange={(e) =>
+                  handleAnswerChange(question.id!, Number(e.target.value))
+                }
+              />
+              <span className="preview-scale-number">{question.scaleMax}</span>
+            </div>
+            <div className="preview-scale-value">
+              {answer || question.scaleMin}
+            </div>
+          </div>
+        )}
+
+        {/* Upload */}
+        {question.type === "upload" && (
+          <div className="preview-upload-container">
+            <input
+              type="file"
+              className="preview-upload-input"
+              multiple={question.maxFiles && question.maxFiles > 1}
+              accept={question.allowedTypes?.join(",") || "*"}
+              onChange={(e) => handleAnswerChange(question.id!, e.target.files)}
+            />
+            <p className="preview-upload-info">
+              Max files: {question.maxFiles || 1} | Max size:{" "}
+              {question.maxFileSizeMb || 5}MB
+            </p>
+            <p className="preview-upload-types">
+              Allowed types: {question.allowedTypes?.join(", ") || "All types"}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="preview-modal-overlay">
+      <div className="preview-modal-container">
+        {/* Modal Header */}
+        <div className="preview-modal-header">
+          <div>
+            <h2 className="preview-modal-title">📋 Form Preview</h2>
+            <p className="preview-modal-subtitle">
+              {formTitle} - {currentPageTitle}
+            </p>
+          </div>
+          <button className="preview-modal-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        {/* Modal Content */}
+        <div className="preview-modal-content">
+          {questions.length === 0 ? (
+            <div className="preview-empty-state">
+              <h3>No questions to preview</h3>
+              <p>Add some questions to see how your form will look!</p>
+            </div>
+          ) : (
+            <>
+              <div className="preview-form-header">
+                <h1 className="preview-form-title">{formTitle}</h1>
+                <h2 className="preview-page-title">{currentPageTitle}</h2>
+              </div>
+
+              {questions.map((question, index) => (
+                <PreviewQuestion
+                  key={question.id}
+                  question={question}
+                  index={index}
+                />
+              ))}
+
+              <div className="preview-navigation">
+                <button className="preview-nav-button primary">
+                  Next Page
+                </button>
+                <button className="preview-nav-button secondary">
+                  Previous
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
