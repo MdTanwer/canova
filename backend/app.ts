@@ -10,6 +10,7 @@ import connectDB from "./utils/db";
 import cookieParser from "cookie-parser";
 import { formRouter } from "./routers/formRoutes";
 import { questionRouter } from "./routers/questionRoutes";
+import { conditionRouter } from "./routers/conditionRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use("/api/users", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/form", formRouter);
 app.use("/api/question", questionRouter);
+app.use("/api/condition", conditionRouter);
 
 // Health check endpoint
 app.get("/", (req: Request, res: Response) => {

@@ -146,7 +146,6 @@ export interface IAnswer extends Document {
   _id: string;
   questionId: Schema.Types.ObjectId;
   pageId: Schema.Types.ObjectId;
-  formResponseId: Schema.Types.ObjectId;
   questionType: string;
 
   // Different answer formats
@@ -173,11 +172,7 @@ const AnswerSchema = new Schema<IAnswer>(
       ref: "Page",
       required: true,
     },
-    formResponseId: {
-      type: Schema.Types.ObjectId,
-      ref: "FormResponse",
-      required: true,
-    },
+
     questionType: {
       type: String,
       required: true,
