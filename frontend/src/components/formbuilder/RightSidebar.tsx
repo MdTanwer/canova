@@ -6,6 +6,8 @@ import cndtn from "../../assets//condition(1).svg";
 import video from "../../assets/Video(1).svg";
 import img1 from "../../assets/img154.svg";
 import sec from "../../assets/sec.svg";
+import { useParams, useNavigate } from "react-router-dom";
+
 interface RightSidebarProps {
   onAddQuestion?: (
     type?: "short" | "long" | "multiple-choice" | "time" | "rating"
@@ -33,6 +35,13 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
   onBackgroundColorChange,
   onSectionColorChange,
 }) => {
+  const navigate = useNavigate();
+  const { id, pageId } = useParams();
+  const handleNext = () => {
+    // ✅ Step 3: Navigate to next page
+    navigate(`/page-flow/${id}/${pageId}`);
+  };
+  // ("/page-flow/:id/:pageId");
   return (
     <div className="right-sidebar">
       {/* Action Buttons Section */}
@@ -123,7 +132,9 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
 
       {/* Next Button */}
       <div className="next-button-section">
-        <button className="next-btn">Next</button>
+        <button onClick={handleNext} className="next-btn">
+          Next
+        </button>
       </div>
     </div>
   );

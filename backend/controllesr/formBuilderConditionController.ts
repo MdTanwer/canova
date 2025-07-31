@@ -44,7 +44,8 @@ export class ConditionController {
         pageId,
         rules, // Array of {questionId, adminAnswer}
         sourcePage,
-        destinationPage,
+        trueDestinationPage,
+        falseDestinationPage,
         logicOperator = "AND",
       } = req.body;
 
@@ -144,16 +145,14 @@ export class ConditionController {
         questionIds,
         rules: validatedRules,
         sourcePage,
-        destinationPage,
+        trueDestinationPage,
+        falseDestinationPage,
         logicOperator,
       });
 
       await condition.save();
 
       // Populate the response with question details
-      await condition.populate("rules.questionId", "question options");
-      await condition.populate("sourcePage", "title order");
-      await condition.populate("destinationPage", "title order");
 
       res.status(201).json({
         success: true,
@@ -161,6 +160,7 @@ export class ConditionController {
         data: condition,
       });
     } catch (error) {
+      console.log("this is error ", error);
       res.status(500).json({
         success: false,
         message: "Error creating condition",
@@ -215,7 +215,7 @@ export class ConditionController {
         if (allRulesMatched) {
           return res.status(200).json({
             success: true,
-            nextPageId: condition.destinationPage,
+            nextPageId: condition.trueDestinationPage,
           });
         }
       }
@@ -258,8 +258,7 @@ export class ConditionController {
       const conditions = await Condition.find({
         formId,
         sourcePage: pageId,
-      }).populate("destinationPage", "title order");
-      // console.log("conditons", conditions);
+      });
 
       if (conditions.length === 0) {
         return res.json({
@@ -292,14 +291,14 @@ export class ConditionController {
         });
 
         if (useConditions) {
-          // Find the first matching condition for this source page
+          // TRUE SCENARIO: Find the first matching condition for this source page
           const pageConditions = conditions.filter(
             (c) => c.sourcePage.toString() === sourcePage._id.toString()
           );
-          console.log("pageConditions", pageConditions);
+
           if (pageConditions.length > 0) {
-            // Handle both ObjectId and populated object for destinationPage
-            const destPage = pageConditions[0].destinationPage;
+            // Handle both ObjectId and populated object for trueDestinationPage
+            const destPage = pageConditions[0].trueDestinationPage;
             const destPageId =
               typeof destPage === "object" &&
               destPage !== null &&
@@ -318,6 +317,7 @@ export class ConditionController {
                 pageName: `Page ${destinationPage.order.toString().padStart(2, "0")}`,
                 pageOrder: destinationPage.order,
               });
+
               // Add all pages after the destination page by order
               const pagesAfterDest = allPages.filter(
                 (p) => p.order > destinationPage.order
@@ -332,16 +332,61 @@ export class ConditionController {
             }
           }
         } else {
-          // False scenario: add all pages after the source page by order
-          const pagesAfterSource = allPages.filter(
-            (p) => p.order > sourcePage.order
+          // FALSE SCENARIO: Handle false destination page
+          const pageConditions = conditions.filter(
+            (c) => c.sourcePage.toString() === sourcePage._id.toString()
           );
-          for (const p of pagesAfterSource) {
-            sequence.push({
-              pageId: p._id,
-              pageName: `Page ${p.order.toString().padStart(2, "0")}`,
-              pageOrder: p.order,
-            });
+
+          if (pageConditions.length > 0) {
+            const falseDestPage = pageConditions[0].falseDestinationPage;
+
+            if (falseDestPage) {
+              const falseDestPageId =
+                typeof falseDestPage === "object" &&
+                falseDestPage !== null &&
+                "_id" in falseDestPage
+                  ? (
+                      falseDestPage._id as string | { toString(): string }
+                    ).toString()
+                  : falseDestPage.toString();
+
+              const falseDestinationPage = allPages.find(
+                (p) => p._id.toString() === falseDestPageId
+              );
+
+              if (falseDestinationPage) {
+                // Add the false destination page
+                sequence.push({
+                  pageId: falseDestinationPage._id,
+                  pageName: `Page ${falseDestinationPage.order.toString().padStart(2, "0")}`,
+                  pageOrder: falseDestinationPage.order,
+                });
+
+                // Add all pages after the false destination page by order
+                const pagesAfterFalseDest = allPages.filter(
+                  (p) => p.order > falseDestinationPage.order
+                );
+                for (const p of pagesAfterFalseDest) {
+                  sequence.push({
+                    pageId: p._id,
+                    pageName: `Page ${p.order.toString().padStart(2, "0")}`,
+                    pageOrder: p.order,
+                  });
+                }
+              }
+            } else {
+              // If no false destination page is set, add all pages after source page
+              const pagesAfterSource = allPages.filter(
+                (p) => p.order > sourcePage.order
+              );
+              for (const p of pagesAfterSource) {
+                sequence.push({
+                  pageId: p._id,
+                  pageName: `Page ${p.order.toString().padStart(2, "0")}`,
+                  pageOrder: p.order,
+                });
+              }
+            }
           }
         }
 
@@ -355,10 +400,11 @@ export class ConditionController {
         conditionsCount: conditions.length,
       });
     } catch (error) {
+      console.error("Error in getSequencesForPage:", error);
       return res.status(500).json({
         hasConditions: false,
         message: "Error processing sequences",
-        error,
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     }
   }
@@ -402,7 +448,7 @@ export class ConditionController {
         // If all rules matched, return destination page (TRUE SEQUENCE)
         if (allRulesMatched) {
           return {
-            nextPageId: condition.destinationPage.toString(),
+            nextPageId: condition.trueDestinationPage.toString(),
             sequenceType: "conditional",
           };
         }

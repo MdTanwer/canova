@@ -8,6 +8,7 @@ import {
   getPages,
   createNextPages,
   getFormNmae,
+  createCondition,
 } from "../../api/formBuilderApi";
 import {
   createQuestion,
@@ -25,6 +26,11 @@ const FormBuilderPage: React.FC = () => {
   const { id: formId } = useParams<{ id: string; pageId: string }>();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
+  const [conditionModel, setConditionModel] = useState(false);
+  const [condition, setCondition] = useState(false);
+  const [selectedConditionOptions, setSelectedConditionOptions] = useState<{
+    [questionId: string]: number;
+  }>({});
 
   // Fetch pages
   useEffect(() => {
@@ -147,8 +153,21 @@ const FormBuilderPage: React.FC = () => {
     console.log("Add Text clicked");
   };
 
-  const handleAddCondition = () => {
-    console.log("Add Condition clicked");
+  const handleAddCondition = async () => {
+    if (activeItem && questions.length > 0) {
+      try {
+        await savePageQuestionsToBackend(activeItem, questions);
+        console.log("✅ Questions saved before adding condition");
+      } catch (error) {
+        console.error(
+          "Failed to save questions before adding condition:",
+          error
+        );
+        alert("Please save your questions first before adding conditions");
+        return;
+      }
+    }
+    setCondition(true);
   };
 
   const handleAddImage = () => {
@@ -327,7 +346,8 @@ const FormBuilderPage: React.FC = () => {
     }
   };
 
-  const addOption = (questionId: string) => {
+  // Update addOption to save questions and open condition modal
+  const addOption = async (questionId: string) => {
     console.log("Adding option to question:", questionId); // Debug log
 
     const updatedQuestions = questions.map((q) => {
@@ -528,7 +548,7 @@ const FormBuilderPage: React.FC = () => {
 
     return (
       <div className="question-container1">
-        <div className="question-container">
+        <div className="question-container ">
           <div className="question-header">
             <span className="question-number">{questionNumber}</span>
             <input
@@ -635,49 +655,58 @@ const FormBuilderPage: React.FC = () => {
                     key={`${question.id}-option-${idx}`}
                     className="option-row"
                   >
-                    <input
-                      type="radio"
-                      name={`q${question.id}`}
-                      className="radio-input"
-                      // ✅ Check if this option is the correct answer
-                      checked={question.correctAnswer === idx}
-                      onChange={() => {
-                        // ✅ Update the correct answer when radio is selected
-                        updateQuestion(question.id!, "correctAnswer", idx);
-                      }}
-                    />
-                    <input
-                      key={`${question.id}-option-input-${idx}`}
-                      type="text"
-                      defaultValue={option}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === "Backspace" &&
-                          (e.target as HTMLInputElement).value === ""
-                        ) {
-                          e.preventDefault();
-                          removeOption(question.id!, idx);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        updateOption(question.id!, idx, e.target.value);
-                      }}
-                      className="option-input editable"
-                      placeholder="Enter option text"
-                    />
-                    {/* ✅ Visual indicator for correct answer */}
-                    {question.correctAnswer === idx && (
-                      <span
-                        className="correct-indicator"
-                        style={{
-                          marginLeft: "8px",
-                          color: "#4CAF50",
-                          fontWeight: "bold",
-                          fontSize: "14px",
+                    <div className="option-row-input">
+                      <input
+                        type="radio"
+                        name={`q${question.id}`}
+                        className="radio-input"
+                        // ✅ Check if this option is the correct answer
+                        checked={question.correctAnswer === idx}
+                        onChange={() => {
+                          // ✅ Update the correct answer when radio is selected
+                          updateQuestion(question.id!, "correctAnswer", idx);
                         }}
-                      >
-                        ✓ Correct
-                      </span>
+                      />
+                      <input
+                        key={`${question.id}-option-input-${idx}`}
+                        type="text"
+                        defaultValue={option}
+                        onKeyDown={(e) => {
+                          if (
+                            e.key === "Backspace" &&
+                            (e.target as HTMLInputElement).value === ""
+                          ) {
+                            e.preventDefault();
+                            removeOption(question.id!, idx);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          updateOption(question.id!, idx, e.target.value);
+                        }}
+                        className="option-input editable"
+                        placeholder="Enter option text"
+                      />
+                    </div>
+                    {condition && (
+                      <input
+                        type="radio"
+                        name={`condition-q${question.id}`}
+                        className="radio-input"
+                        checked={selectedConditionOptions[question.id!] === idx}
+                        onChange={() => {
+                          console.log("Selected condition:", {
+                            frontendId: question.id,
+                            mongoId: question._id,
+                            option: question.options?.[idx],
+                            optionIndex: idx,
+                          });
+
+                          setSelectedConditionOptions((prev) => ({
+                            ...prev,
+                            [question.id!]: idx,
+                          }));
+                        }}
+                      />
                     )}
                   </div>
                 ))}
@@ -687,22 +716,6 @@ const FormBuilderPage: React.FC = () => {
                 >
                   + Add option
                 </button>
-
-                {/* ✅ Instructions for setting correct answer */}
-                <div
-                  className="correct-answer-help"
-                  style={{
-                    marginTop: "12px",
-                    padding: "8px 12px",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    color: "#666",
-                  }}
-                >
-                  💡 Click the radio button next to an option to mark it as the
-                  correct answer
-                </div>
               </div>
             )}
 
@@ -801,8 +814,6 @@ const FormBuilderPage: React.FC = () => {
                     color: "#666",
                   }}
                 >
-                  💡 Check the boxes next to options to mark them as correct
-                  answers (multiple selections allowed)
                   {question.correctAnswers &&
                     question.correctAnswers.length > 0 && (
                       <div style={{ marginTop: "4px", fontWeight: "500" }}>
@@ -1230,13 +1241,19 @@ const FormBuilderPage: React.FC = () => {
         onItemClick={handleItemClick}
         pages={allPages}
         createNextPage={createNextPage}
+        formbuilder={true}
       />
       <main className="form-main-content">
         <div className="form-content-wrapper">
           <FormHeader title={formTitle} onPreview={handlePreview} />
 
           <div className="form-builder-content">
-            <div className="form-builder-main">
+            <div
+              className="form-builder-main"
+              style={{
+                backgroundColor: condition ? "#E7EEF5" : "",
+              }}
+            >
               {loading ? (
                 <div className="loading">Loading questions...</div>
               ) : questions.length === 0 ? (
@@ -1260,6 +1277,25 @@ const FormBuilderPage: React.FC = () => {
                 </>
               )}
             </div>
+            {condition && (
+              <div
+                onClick={() => {
+                  const hasSelectedOptions =
+                    Object.keys(selectedConditionOptions).length > 0;
+                  if (!hasSelectedOptions) {
+                    alert(
+                      "Please select at least one option to create a condition"
+                    );
+                    return;
+                  }
+                  setConditionModel(true);
+                }}
+                className="add-condition-btn"
+              >
+                Add Condition
+              </div>
+            )}
+
             <div>
               <RightSidebar
                 onAddQuestion={addQuestion}
@@ -1287,6 +1323,18 @@ const FormBuilderPage: React.FC = () => {
           allPages.find((p) => p._id === activeItem)?.title || "Current Page"
         }
       />
+
+      {conditionModel && (
+        <ConditionModel
+          pages={allPages}
+          setConditionModel={setConditionModel}
+          formId={formId}
+          questions={questions.filter((q) => q.type === "multiple-choice")}
+          selectedConditionOptions={selectedConditionOptions}
+          setSelectedConditionOptions={setSelectedConditionOptions}
+          setCondition={setCondition}
+        />
+      )}
     </div>
   );
 };
@@ -1542,6 +1590,229 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
               </div>
             </>
           )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface ConditionModalProps {
+  setConditionModel: (value: boolean) => void;
+  pages: { _id: string; title: string }[];
+  formId?: string;
+  questions: Question[];
+  selectedConditionOptions: { [questionId: string]: number };
+  setSelectedConditionOptions: React.Dispatch<
+    React.SetStateAction<{ [questionId: string]: number }>
+  >;
+  setCondition: React.Dispatch<React.SetStateAction<boolean>>;
+}
+const ConditionModel: React.FC<ConditionModalProps> = ({
+  setConditionModel,
+  pages,
+  formId,
+  questions,
+  selectedConditionOptions,
+  setSelectedConditionOptions,
+  setCondition,
+}) => {
+  const [sourcePage, setSourcePage] = useState<string>(pages[0]?._id || "");
+  const [trueDest, setTrueDest] = useState<string>(pages[0]?._id || "");
+  const [falseDest, setFalseDest] = useState<string>(pages[0]?._id || "");
+
+  const handleContinue = async () => {
+    if (!formId) return;
+
+    const selectedOptions = selectedConditionOptions;
+
+    if (Object.keys(selectedOptions).length === 0) {
+      alert("No condition options selected");
+      return;
+    }
+
+    // Validate that all selected questions have MongoDB IDs
+    const invalidQuestions = Object.keys(selectedOptions).filter(
+      (frontendId) => {
+        const question = questions.find((q) => q.id === frontendId);
+        return !question?._id || question._id.startsWith("temp_");
+      }
+    );
+
+    if (invalidQuestions.length > 0) {
+      alert("Please save the form first. Some questions don't have valid IDs.");
+      return;
+    }
+
+    // Create rules array from selected options
+    const rules = Object.entries(selectedOptions).map(
+      ([questionId, optionIndex]) => {
+        const question = questions.find((q) => q.id === questionId);
+        const selectedOptionText = question?.options?.[optionIndex] || "";
+
+        return {
+          questionId: question?._id || questionId,
+          adminAnswer: selectedOptionText,
+        };
+      }
+    );
+
+    // Extract MongoDB question IDs
+    const questionIds = Object.keys(selectedOptions).map((frontendId) => {
+      const question = questions.find((q) => q.id === frontendId);
+      return question?._id || frontendId;
+    });
+
+    const payload = {
+      formId,
+      pageId: sourcePage,
+      questionIds,
+      rules,
+      sourcePage,
+      trueDestinationPage: trueDest,
+      falseDestinationPage: falseDest,
+      logicOperator: "AND",
+    };
+
+    console.log("🚀 Sending payload:", JSON.stringify(payload, null, 2));
+
+    try {
+      const result = await createCondition(payload);
+      console.log("✅ Condition created successfully:", result);
+      setConditionModel(false);
+      setCondition(false);
+      setSelectedConditionOptions({});
+    } catch (error) {
+      console.error("❌ Failed to create condition:", error);
+      console.error("Error response:", error.response?.data);
+      alert(
+        `Failed to create condition: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <button
+          onClick={() => setConditionModel(false)}
+          className="close-button"
+        >
+          &times;
+        </button>
+
+        <h3>Create Condition</h3>
+
+        <div
+          className="selected-conditions"
+          style={{
+            marginBottom: "20px",
+            padding: "10px",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "5px",
+          }}
+        >
+          <h4>Selected Options:</h4>
+          {Object.entries(selectedConditionOptions).map(
+            ([questionId, optionIndex]) => {
+              const question = questions.find((q) => q.id === questionId);
+              const optionText = question?.options?.[optionIndex];
+              return (
+                <div
+                  key={questionId}
+                  className="condition-item"
+                  style={{ marginBottom: "10px" }}
+                >
+                  <strong>Q:</strong> {question?.question} <br />
+                  <strong>Selected:</strong> {optionText}
+                </div>
+              );
+            }
+          )}
+        </div>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px" }}>
+            Source Page
+          </label>
+          <select
+            value={sourcePage}
+            onChange={(e) => setSourcePage(e.target.value)}
+            style={{ width: "100%", padding: "8px" }}
+          >
+            {pages.map((page) => (
+              <option key={page._id} value={page._id}>
+                {page.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px" }}>
+            If TRUE, go to
+          </label>
+          <select
+            value={trueDest}
+            onChange={(e) => setTrueDest(e.target.value)}
+            style={{ width: "100%", padding: "8px" }}
+          >
+            {pages.map((page) => (
+              <option key={page._id} value={page._id}>
+                {page.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "5px" }}>
+            If FALSE, go to
+          </label>
+          <select
+            value={falseDest}
+            onChange={(e) => setFalseDest(e.target.value)}
+            style={{ width: "100%", padding: "8px" }}
+          >
+            {pages.map((page) => (
+              <option key={page._id} value={page._id}>
+                {page.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
+        >
+          <button
+            onClick={() => setConditionModel(false)}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#ccc",
+              border: "none",
+              borderRadius: "5px",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            className="continue-button"
+            onClick={handleContinue}
+            disabled={Object.keys(selectedConditionOptions).length === 0}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "5px",
+              opacity:
+                Object.keys(selectedConditionOptions).length === 0 ? 0.5 : 1,
+            }}
+          >
+            Continue
+          </button>
         </div>
       </div>
     </div>

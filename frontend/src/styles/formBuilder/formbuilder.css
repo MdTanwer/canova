@@ -26,10 +26,104 @@
 
 .form-builder-main {
   position: fixed;
-  top: 90px; /* replaces margin-top */
-  height: calc(100vh - 90px); /* optional: adjust height */
+  top: 87px; /* replaces margin-top */
+  height: calc(100vh - 87px); /* optional: adjust height */
   overflow-y: auto;
   width: calc(100% - 270px);
+  /* position: relative; */
+}
+
+.add-condition-btn {
+  position: absolute;
+  z-index: 500;
+  background-color: #69b5f8; /* light blue */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 28px;
+  transition: background-color 0.3s ease;
+  left: 50%;
+  bottom: 5%;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 360px;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  font-family: "Inter", sans-serif;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.description {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.dropdown-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropdown {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #f2f6fa;
+  font-size: 14px;
+}
+
+.continue-button {
+  margin-top: 24px;
+  width: 40%;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  align-items: right;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.continue-button:hover {
+  background-color: #333;
+}
+
+.add-condition-btn:hover {
+  background-color: #42a5f5; /* darker on hover */
 }
 
 .question-container {
@@ -264,6 +358,13 @@
   align-items: center;
   gap: 18px;
   margin-bottom: 18px;
+  justify-content: space-between;
+}
+
+.option-row-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .radio-input {

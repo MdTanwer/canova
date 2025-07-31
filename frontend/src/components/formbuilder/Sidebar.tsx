@@ -9,7 +9,8 @@ interface SidebarProps {
   activeItem: string;
   onItemClick: (item: string) => void;
   pages: { _id: string; title: string }[];
-  createNextPage: () => void;
+  createNextPage?: () => void;
+  formbuilder: boolean;
 }
 
 const NavigationSidebar: React.FC<SidebarProps> = ({
@@ -17,6 +18,7 @@ const NavigationSidebar: React.FC<SidebarProps> = ({
   onItemClick,
   pages,
   createNextPage,
+  formbuilder,
 }) => {
   const navigate = useNavigate();
 
@@ -48,12 +50,14 @@ const NavigationSidebar: React.FC<SidebarProps> = ({
           </span>
           <span className="form-add-text">Add new Page</span>
         </button> */}
-        <button className="form-sidebar-add-page" onClick={createNextPage}>
-          <span className="form-add-icon">
-            <img src={add} alt="" />
-          </span>
-          <span className="form-add-text">Add new Page</span>
-        </button>
+        {formbuilder && (
+          <button className="form-sidebar-add-page" onClick={createNextPage}>
+            <span className="form-add-icon">
+              <img src={add} alt="" />
+            </span>
+            <span className="form-add-text">Add new Page</span>
+          </button>
+        )}
       </nav>
 
       <div className="form-sidebar-footer">

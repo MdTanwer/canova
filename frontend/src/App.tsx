@@ -20,6 +20,7 @@ import ProjectPage from "./pages/projectPage/projectPage";
 import ProfilePage from "./pages/profilePage/profilepage";
 import SettingPage from "./pages/settigngPage/settingPage";
 import FormBuilderPage from "./pages/formBuilderPage/formbuilderPage";
+import PageFlow from "./pages/pageFlow/pageFlow";
 // ProtectedRoute component
 // function ProtectedRoute({ children }: { children: React.ReactNode }) {
 //   const { user, loading } = useAuth();
@@ -60,6 +61,8 @@ function App() {
             path="/form-builder/:id/:pageId"
             element={<FormBuilderPage />}
           />
+
+          <Route path="/page-flow/:id/:pageId" element={<PageFlow />} />
 
           <Route path="/profile-settings" element={<SettingPage />} />
 

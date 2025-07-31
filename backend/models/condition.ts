@@ -13,7 +13,8 @@ export interface ICondition extends Document {
   questionIds: Schema.Types.ObjectId[]; // Array of question IDs
   rules: IConditionRule[]; // Array of question-answer pairs
   sourcePage: Schema.Types.ObjectId;
-  destinationPage: Schema.Types.ObjectId;
+  trueDestinationPage: Schema.Types.ObjectId;
+  falseDestinationPage?: Schema.Types.ObjectId;
   logicOperator: "AND" | "OR"; // How to combine multiple rules
   createdAt: Date;
   updatedAt: Date;
@@ -57,10 +58,14 @@ const ConditionSchema = new Schema<ICondition>(
       ref: "Page",
       required: true,
     },
-    destinationPage: {
+    trueDestinationPage: {
       type: Schema.Types.ObjectId,
       ref: "Page",
       required: true,
+    },
+    falseDestinationPage: {
+      type: Schema.Types.ObjectId,
+      ref: "Page",
     },
     logicOperator: {
       type: String,

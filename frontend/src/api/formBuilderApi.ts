@@ -8,6 +8,7 @@ export interface CreateProjectPayload {
 export interface CreateFormPayload {
   formName: string;
 }
+import type { Condition } from "../types/types";
 
 export const createProjectWithForm = async (payload: CreateProjectPayload) => {
   const response = await api.post("/project", payload);
@@ -30,5 +31,10 @@ export const createNextPages = async (formId: string) => {
 
 export const getFormNmae = async (formId: string) => {
   const response = await api.get(`/form/${formId}`);
+  return response.data;
+};
+
+export const createCondition = async (payload: Condition) => {
+  const response = await api.post(`/condition`, payload);
   return response.data;
 };
