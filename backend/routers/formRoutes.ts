@@ -1,12 +1,12 @@
 // 9. routers/userRouter.ts (User routes)
-import express, { Request, Response } from "express";
+import express from "express";
 import {
   createRandomForm,
   getFormNameById,
   getPagesByFormId,
   getFormByUniqueUrl,
-  verifyBrowserEmail,
   formPublich,
+  verifyEmail,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 import { checkFormAccess } from "../middlewares/authMiddleware";
@@ -20,5 +20,5 @@ formRouter.post("/add-page/:formId", createNextPage);
 formRouter.get("/:formId", getFormNameById);
 
 formRouter.get("/access/:uniqueUrl", checkFormAccess, getFormByUniqueUrl);
-formRouter.post("/verify-browser-email/:uniqueUrl", verifyBrowserEmail);
+formRouter.post("/verify-browser-email/:uniqueUrl", verifyEmail);
 formRouter.post("/publish/:formId", formPublich);

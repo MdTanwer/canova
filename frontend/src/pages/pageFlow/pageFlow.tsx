@@ -315,6 +315,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
   };
 
   const handlePublish = async () => {
+    console.log("emails", emails);
     setError(null);
 
     if (!validateEmails()) {

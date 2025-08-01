@@ -61,7 +61,7 @@ export const checkFormAccess = async (
       if (!verifiedEmail || !form.allowedEmails.includes(verifiedEmail)) {
         return res.status(401).json({
           success: false,
-          message: "Please login with an authorized email account",
+          message: "email required",
           requiresBrowserLogin: true,
           allowedEmails: form.allowedEmails,
         });

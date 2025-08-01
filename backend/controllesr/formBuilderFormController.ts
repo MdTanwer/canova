@@ -145,72 +145,113 @@ export const formPublich = async (
     next(error);
   }
 };
+// Backend API Routes
 
-export const getFormByUniqueUrl = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const form = req.form;
-
-    // Return form data (access already validated by middleware)
-    res.json({
-      success: true,
-      form: {
-        id: form._id as string,
-        title: form.title,
-        description: form.description,
-        PageIds: form.PageIds,
-        isPublic: form.isPublic,
-      },
-    });
-  } catch (error) {
-    console.log("error", error);
-    next(error);
-  }
-};
-
-// POST: Verify browser email for restricted forms
-export const verifyBrowserEmail = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
+// GET: Check form access and return form data
+export const getFormByUniqueUrl = async (req: Request, res: Response) => {
   try {
     const { uniqueUrl } = req.params;
-    const { browserEmail } = req.body; // Frontend will send detected browser email
 
+    // Find the form
     const form = await Form.findOne({ uniqueUrl, status: "published" });
 
     if (!form) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Form not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Form not found",
+      });
     }
 
+    // If form is public, return form data immediately
     if (form.isPublic) {
-      return res.status(400).json({
-        success: false,
-        message: "This form is public, no verification needed",
+      return res.json({
+        success: true,
+        form: {
+          id: form._id,
+          title: form.title,
+          description: form.description,
+          PageIds: form.PageIds,
+          isPublic: true,
+          requiresEmail: false,
+        },
       });
     }
 
-    if (!form.allowedEmails.includes(browserEmail.toLowerCase())) {
-      return res.status(403).json({
-        success: false,
-        message: "Your browser email is not authorized to access this form",
-      });
-    }
-
-    // Store verified browser email in session
-    req.session.verifiedBrowserEmail = browserEmail.toLowerCase();
-
-    res.json({
+    // If form is restricted, return form info but indicate email verification needed
+    return res.json({
       success: true,
-      message: "Browser email verified successfully",
+      form: {
+        id: form._id,
+        title: form.title,
+        description: form.description,
+        isPublic: false,
+        requiresEmail: true,
+      },
     });
   } catch (error) {
-    next(error);
+    console.error("Error fetching form:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
+// POST: Verify email for restricted forms
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { uniqueUrl } = req.params;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // Find the form
+    const form = await Form.findOne({ uniqueUrl, status: "published" });
+
+    if (!form) {
+      return res.status(404).json({
+        success: false,
+        message: "Form not found",
+      });
+    }
+
+    // Check if email is allowed
+    const isEmailAllowed = form.allowedEmails.includes(email.toLowerCase());
+
+    if (!isEmailAllowed) {
+      return res.status(403).json({
+        success: false,
+        message: "Your email is not authorized to access this form",
+      });
+    }
+
+    // Email is verified, return full form data
+    res.json({
+      success: true,
+      message: "Email verified successfully",
+      form: {
+        id: form._id,
+        title: form.title,
+        description: form.description,
+        PageIds: form.PageIds,
+        isPublic: false,
+        requiresEmail: false, // Now they have access
+      },
+    });
+  } catch (error) {
+    console.error("Error verifying email:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// Routes setup
+// app.get('/api/forms/:uniqueUrl', getForm);
+// app.post('/api/forms/:uniqueUrl/verify-email', verifyEmail);
