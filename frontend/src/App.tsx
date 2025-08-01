@@ -22,6 +22,8 @@ import PageFlow from "./pages/pageFlow/pageFlow";
 import PublicAccess from "./pages/publicaccess/publicAccess";
 import PrivateAccessByEmail from "./pages/privateAccessByEmail/privateAccessByEmail";
 import { useAuth } from "./context/useAuth";
+import FormAnalysis from "./pages/formAnalysis/formAnalysis";
+import Projectanalysis from "./pages/projectAnalysis/projectanalysis";
 // ProtectedRoute component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -70,7 +72,32 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/projects" element={<ProjectPage />} />
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <ProjectPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/formanalysis/:id"
+            element={
+              <ProtectedRoute>
+                <FormAnalysis />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/project/:id"
+            element={
+              <ProtectedRoute>
+                <Projectanalysis />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/form-builder/:id/:pageId"
             element={<FormBuilderPage />}

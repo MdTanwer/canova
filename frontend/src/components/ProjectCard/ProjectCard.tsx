@@ -5,6 +5,7 @@ import form from "../../assets/fe_editbigsvg.svg";
 import file from "../../assets/filebig.svg";
 import { deleteById } from "../../api/formBuilderApi";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectCardProps {
   project: Project;
@@ -41,9 +42,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       toast.error("Failed to delete. Please try again.");
     }
   };
+  const navigate = useNavigate();
+  const handleClick = () => {
+    if (project.type === "form") {
+      navigate(`/formanalysis/${project.id}`);
+    } else {
+      navigate(`/project/${project.id}`);
+    }
+  };
 
   return (
     <div
+      onClick={handleClick}
       className="project-card"
       style={{ paddingBottom: "5px", position: "relative" }}
     >
