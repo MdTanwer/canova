@@ -177,3 +177,86 @@ export const createNextPage = async (
     next(createError("Failed to create next page", 500));
   }
 };
+
+// Get all projects with id, name, type, status, isShared and associated form id and name
+export const getAllProjectsSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const projects = await Project.find().populate({
+      path: "forms",
+      select: "title _id status isShared",
+    });
+
+    // Map projects with their forms
+    const projectsResult = projects.map((project: any) => ({
+      id: project._id,
+      name: project.name,
+      type: project.type,
+      status: project.status,
+      isShared: project.isShared, // Fetch actual isShared from database
+    }));
+
+    // Find forms not associated with any project
+    const Form = require("../models/Index").Form;
+    const unassignedForms = await Form.find({
+      $or: [{ projectId: { $exists: false } }, { projectId: null }],
+    }).select("title _id status isShared");
+
+    // Map unassigned forms to match the same structure
+    const unassignedFormsResult = unassignedForms.map((form: any) => ({
+      id: form._id,
+      name: form.title,
+      type: "form",
+      status: form.status, // Fetch actual status from database
+      isShared: form.isShared, // Fetch actual isShared from database
+    }));
+
+    // Combine both arrays
+    const combinedResults = [...projectsResult, ...unassignedFormsResult];
+
+    res.json({
+      success: true,
+      data: combinedResults,
+    });
+  } catch (error) {
+    next(createError("Failed to fetch projects summary", 500));
+  }
+};
+
+// Delete by id (project or form)
+export const deleteById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return next(createError("id is required", 400));
+    }
+    // Try to find and delete as a project
+    const project = await Project.findByIdAndDelete(id);
+    if (project) {
+      return res.status(200).json({
+        success: true,
+        message: "Project deleted",
+        type: "project",
+        id,
+      });
+    }
+    // Try to find and delete as a form
+    const Form = require("../models/Index").Form;
+    const form = await Form.findByIdAndDelete(id);
+    if (form) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Form deleted", type: "form", id });
+    }
+    return next(createError("No project or form found with this id", 404));
+  } catch (error) {
+    next(createError("Failed to delete by id", 500));
+  }
+};

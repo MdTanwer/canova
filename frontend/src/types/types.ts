@@ -17,8 +17,9 @@ export interface FormErrors {
 export interface Project {
   id: string;
   name: string;
-  type: "form" | "project";
+  type?: "form" | "project";
   isShared?: boolean;
+  status?: string;
 }
 
 export interface Page {

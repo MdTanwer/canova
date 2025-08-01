@@ -2,19 +2,41 @@ import React, { useState } from "react";
 import Sidebar from "../../components/home/Sidebar";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import ActionCard from "../../components/ActionCard/ActionCard";
-import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
 import file from "../../assets/fe_edit.svg";
 import form from "../../assets/fe_edit (1).svg";
 import { createProjectWithForm } from "../../api/formBuilderApi";
 import { createForm } from "../../api/formBuilderApi";
 import { useNavigate } from "react-router-dom";
+import { getAllProjectsSummary } from "../../api/formBuilderApi";
+import { useEffect } from "react";
 
 const Home: React.FC = () => {
   const [activeItem, setActiveItem] = useState("home");
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
   const navigate = useNavigate();
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  console.log("projects", projects);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const response = (await getAllProjectsSummary()) as {
+          data: ProjectSummary[];
+        };
+        setProjects(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch projects summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   interface CreateProjectResponse {
     success: boolean;
@@ -31,17 +53,14 @@ const Home: React.FC = () => {
     page: { _id: string };
   }
 
-  // Mock data - replace with your actual data source
-  const recentProjects: Project[] = [
-    { id: "1", name: "Form Name (Draft)", type: "form" },
-    { id: "2", name: "Form Name", type: "form" },
-    { id: "3", name: "Project Name", type: "project" },
-  ];
-
-  const sharedProjects: Project[] = [
-    { id: "4", name: "Form Name", type: "form", isShared: true },
-    { id: "5", name: "Project Name", type: "project", isShared: true },
-  ];
+  interface ProjectSummary {
+    id: string;
+    name: string;
+    type?: string;
+    status?: string;
+    forms?: { id: string; name: string }[];
+    isShared: boolean;
+  }
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
@@ -120,34 +139,58 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Recent Works */}
+          {/* Projects from API */}
           <section className="projects-section">
-            <h2 className="section-title">Recent Works</h2>
-            <div className="projects-grid">
-              {recentProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onViewAnalysis={handleViewAnalysis}
-                  onMenuClick={handleMenuClick}
-                />
-              ))}
-            </div>
+            <h2 className="section-title">Resent Work</h2>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="projects-grid">
+                {projects.length === 0 && <div>No projects found.</div>}
+                {projects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={{
+                      id: project.id,
+                      name: project.name,
+                      status: project.status,
+                      type: (project.type as "form" | "project") || "project",
+                    }}
+                    onViewAnalysis={handleViewAnalysis}
+                    onMenuClick={handleMenuClick}
+                  />
+                ))}
+              </div>
+            )}
           </section>
 
-          {/* Shared Works */}
+          {/* Unassigned Forms from API */}
           <section className="projects-section">
-            <h2 className="section-title">Shared Works</h2>
-            <div className="projects-grid">
-              {sharedProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onViewAnalysis={handleViewAnalysis}
-                  onMenuClick={handleMenuClick}
-                />
-              ))}
-            </div>
+            <h2 className="section-title">Shared</h2>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="projects-grid">
+                {projects.filter((project) => project.isShared === true)
+                  .length === 0 && <div>No shared projects.</div>}
+                {projects
+                  .filter((project) => project.isShared === true)
+                  .map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={{
+                        id: project.id,
+                        name: project.name,
+                        type: (project.type as "form" | "project") || "project",
+                        status: project.status,
+                        isShared: project.isShared,
+                      }}
+                      onViewAnalysis={handleViewAnalysis}
+                      onMenuClick={handleMenuClick}
+                    />
+                  ))}
+              </div>
+            )}
           </section>
         </div>
       </main>

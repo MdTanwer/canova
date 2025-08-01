@@ -68,3 +68,13 @@ export const publishForm = async (
   const response = await api.post(`/form/publish/${formId}`, payload);
   return response.data as PublishResponse;
 };
+
+export const getAllProjectsSummary = async () => {
+  const response = await api.get("/project/summary");
+  return response.data;
+};
+
+export const deleteById = async (id: string) => {
+  const response = await api.delete(`/project/${id}`);
+  return response.data;
+};

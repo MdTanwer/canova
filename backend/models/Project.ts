@@ -10,6 +10,7 @@ export interface IProject extends Document {
   collaborators?: Schema.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
+  isShared?: boolean;
 }
 
 const ProjectSchema = new Schema<IProject>(
@@ -18,6 +19,10 @@ const ProjectSchema = new Schema<IProject>(
       type: String,
       required: true,
       trim: true,
+    },
+    isShared: {
+      type: Boolean,
+      default: false,
     },
     type: {
       type: String,
