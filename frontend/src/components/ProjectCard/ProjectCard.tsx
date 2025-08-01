@@ -23,10 +23,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     }
     return <img src={file} alt="file" />;
   };
-
   const [tooltip, setTooltip] = useState(false);
-  // Add this function inside your ProjectCard component
-  // Add this function inside your ProjectCard component
+
   const handleDelete = async () => {
     try {
       const result = (await deleteById(project.id)) as any;
