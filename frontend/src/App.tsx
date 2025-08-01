@@ -6,10 +6,8 @@ import {
   Routes,
   Route,
   Navigate,
-  // Navigate,
 } from "react-router-dom";
 import Home from "./pages/Home/Home";
-// import { useAuth } from "./context/useAuth";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import SignUp from "./pages/siginup/siginUp";
@@ -19,7 +17,6 @@ import SendOtp from "./components/forgotpassord/sendotp";
 import AnalyticsPage from "./pages/analyticsPage/analyticsPage";
 import ProjectPage from "./pages/projectPage/projectPage";
 import ProfilePage from "./pages/profilePage/profilepage";
-import SettingPage from "./pages/settigngPage/settingPage";
 import FormBuilderPage from "./pages/formBuilderPage/formbuilderPage";
 import PageFlow from "./pages/pageFlow/pageFlow";
 import PublicAccess from "./pages/publicaccess/publicAccess";
@@ -56,10 +53,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/projects" element={<ProjectPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
           <Route
             path="/form-builder/:id/:pageId"
             element={<FormBuilderPage />}
@@ -70,8 +74,6 @@ function App() {
             element={<PrivateAccessByEmail />}
           />
           <Route path="/page-flow/:id/:pageId" element={<PageFlow />} />
-
-          <Route path="/profile-settings" element={<SettingPage />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUp />} />

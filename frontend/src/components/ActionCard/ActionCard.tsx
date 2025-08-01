@@ -15,14 +15,14 @@ const ActionCard: React.FC<ActionCardProps> = ({
   onClick,
 }) => {
   return (
-    <div className="action-card" onClick={onClick}>
-      <div className="action-icon">
+    <div className="project-action-card" onClick={onClick}>
+      <div className=" project-action-icon">
         <img src={icon} alt="icon" />
       </div>
 
-      <div className="action-content">
-        <h3 className="action-title">{title}</h3>
-        <p className="action-subtitle">{subtitle}</p>
+      <div className=" project-action-content">
+        <h3 className=" project-action-title">{title}</h3>
+        <p className=" project-action-subtitle">{subtitle}</p>
       </div>
     </div>
   );

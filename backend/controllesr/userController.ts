@@ -377,3 +377,20 @@ export const updateUsername = async (
     next(createError("Failed to update username", 500));
   }
 };
+
+// Logout function
+export const logoutUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(createError("Logout failed", 500));
+  }
+};

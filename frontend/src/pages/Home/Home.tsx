@@ -200,26 +200,29 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+        <div className=" project-modal-header">
           <div>
             <div className="logo1">
               <img src={logo} alt="" />
             </div>
           </div>
-          <button className="close-button" onClick={handleClose}>
+          <button className=" project-close-button" onClick={handleClose}>
             <img src={cross} alt="" />
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="project-modal-body">
           <h2 className="project-modal-title">Create Project</h2>
           <h5 className="project-modal-subtitle">
             Provide your project a name and start with your journey
           </h5>
 
-          <form onSubmit={handleSubmit} className="project-form">
-            <div className="form-group">
-              <label htmlFor="projectName" className="project-form-label">
+          <form onSubmit={handleSubmit} className="project-project-form">
+            <div className="project-form-group">
+              <label
+                htmlFor="projectName"
+                className=" project-project-form-label"
+              >
                 Project Name
               </label>
               <input
@@ -228,12 +231,12 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 placeholder="Project Name"
-                className="form-input"
+                className="project-form-input"
                 autoFocus
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="formName" className="project-form-label">
+            <div className="project-form-group">
+              <label htmlFor="formName" className="project-project-form-label">
                 Form Name
               </label>
               <input
@@ -242,13 +245,13 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Form Name"
-                className="form-input"
+                className="project-form-input"
               />
             </div>
 
             <button
               type="submit"
-              className="create-button"
+              className="project-create-button"
               disabled={!projectName.trim() || !formName.trim()}
             >
               Create

@@ -7,13 +7,13 @@
 
 .main-content {
   flex: 1;
-  margin-left: 180px;
+  margin-left: 240px;
   padding: 0;
   background-color: #fefdfd;
   position: relative;
   height: 99vh;
   overflow: hidden;
-  border: 2.5px solid #e0e0e0;
+  border: 2.5px solid #888585;
   border-radius: 10px;
 }
 
@@ -131,10 +131,9 @@
   padding: 20px;
 }
 
-.modal-header {
+.project-modal-header {
   display: flex;
   justify-content: space-between;
-  /* padding: 16px 16px 0 16px; */
   margin-top: 15px;
 }
 
@@ -143,7 +142,7 @@
   padding: 15px;
   border-radius: 10px;
 }
-.close-button {
+.project-close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -159,11 +158,11 @@
   transition: background-color 0.2s;
 }
 
-.close-button:hover {
+.project-close-button:hover {
   background-color: #f3f4f6;
 }
 
-.modal-body {
+.project-modal-body {
   padding: 10px;
 }
 
@@ -203,7 +202,7 @@
   padding-top: 10px;
 }
 
-.project-form {
+.project-project-form {
   font-weight: 600;
   color: #111827;
   align-items: left;
@@ -216,11 +215,11 @@
   margin: 0;
 }
 
-.form-group {
+.project-form-group {
   margin-bottom: 14px;
 }
 
-.project-form-label {
+.project-project-form-label {
   display: block;
   font-size: 12px;
   font-weight: 500;
@@ -230,27 +229,28 @@
   padding-bottom: 3px;
 }
 
-.form-input {
+.project-form-input {
   width: 100%;
-  /* padding: 12px 16px; */
+  padding: 12px 16px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 16px;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
   box-sizing: border-box;
+  border: "1px solid red";
 }
 
-.form-input:focus {
+.project-form-input:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-input::placeholder {
+.project-form-input::placeholder {
   color: #9ca3af;
 }
 
-.create-button {
-  width: 90%;
+.project-create-button {
+  width: 100%;
   padding: 12px 24px;
   background: #3b82f6;
   color: white;
@@ -262,16 +262,16 @@
   transition: background-color 0.2s;
 }
 
-.create-button:hover:not(:disabled) {
+.project-create-button:hover:not(:disabled) {
   background: #2563eb;
 }
 
-.create-button:disabled {
+.project-create-button:disabled {
   background: #9ca3af;
   cursor: not-allowed;
 }
 
-.create-button:active:not(:disabled) {
+.project-create-button:active:not(:disabled) {
   background: #1d4ed8;
 }
 

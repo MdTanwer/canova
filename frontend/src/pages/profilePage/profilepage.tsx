@@ -4,14 +4,30 @@ import "../../styles/PageFlow/PageFlow.css";
 import { Navigate } from "react-router-dom";
 import Profile from "../../features/profile/profile";
 import Settings from "../../features/settings/settings";
+import api from "../../api/axios";
+import { toast } from "react-toastify";
 const ProfilePage = () => {
   const [activeItem, setActiveItem] = useState("myProfile");
+  const [loggedOut, setLoggedOut] = useState(false);
 
   const handleItemClick = (item: string) => {
-    setActiveItem(item);
+    if (item === "logout") {
+      api
+        .post("/users/logout")
+        .then(() => {
+          toast.success("Logged out successfully");
+          setLoggedOut(true);
+        })
+        .catch(() => {
+          toast.error("Logout failed");
+          setLoggedOut(true); // Still navigate to login
+        });
+    } else {
+      setActiveItem(item);
+    }
   };
 
-  if (activeItem === "logout") {
+  if (activeItem === "logout" || loggedOut) {
     return <Navigate to="/login" />;
   }
 

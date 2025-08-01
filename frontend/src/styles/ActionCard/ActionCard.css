@@ -1,4 +1,4 @@
-.action-card {
+.project-action-card {
   background: white;
   border-radius: 8px;
   border: 1px solid #e9ecef;
@@ -14,11 +14,11 @@
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
-.action-card:hover {
+.project-action-card:hover {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
-.action-icon {
+.project-action-icon {
   width: 48px;
   height: 48px;
   background-color: #69b5f8;
@@ -31,11 +31,11 @@
   color: white;
 }
 
-.action-content {
+.project-action-content {
   flex: 1;
 }
 
-.action-title {
+.project-action-title {
   font-size: 16px;
   font-weight: 500;
   color: #333;
@@ -43,7 +43,7 @@
   font-family: "Inter", sans-serif;
 }
 
-.action-subtitle {
+.project-action-subtitle {
   font-size: 14px;
   color: #424242;
 
