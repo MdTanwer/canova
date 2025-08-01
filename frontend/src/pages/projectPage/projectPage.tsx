@@ -1,27 +1,43 @@
 import React, { useState } from "react";
 import Sidebar from "../../components/home/Sidebar";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
-import ActionCard from "../../components/ActionCard/ActionCard";
-import type { Project } from "../../types/types";
 import "../../styles/home/Dashboard.css";
-import file from "../../assets/fe_edit.svg";
-import form from "../../assets/fe_edit (1).svg";
-import { createProjectWithForm } from "../../api/formBuilderApi";
+// import { useNavigate } from "react-router-dom";
+import { getAllProjectsSummary } from "../../api/formBuilderApi";
+import { useEffect } from "react";
 
-const ProjectPage: React.FC = () => {
+const Home: React.FC = () => {
   const [activeItem, setActiveItem] = useState("projects");
 
-  // Mock data - replace with your actual data source
-  const recentProjects: Project[] = [
-    { id: "1", name: "Form Name (Draft)", type: "form" },
-    { id: "2", name: "Form Name", type: "form" },
-    { id: "3", name: "Project Name", type: "project" },
-  ];
+  // const navigate = useNavigate();
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const sharedProjects: Project[] = [
-    { id: "4", name: "Form Name", type: "form", isShared: true },
-    { id: "5", name: "Project Name", type: "project", isShared: true },
-  ];
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const response = (await getAllProjectsSummary()) as {
+          data: ProjectSummary[];
+        };
+        setProjects(response.data || []);
+      } catch (error) {
+        console.error("Failed to fetch projects summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  interface ProjectSummary {
+    id: string;
+    name: string;
+    type?: string;
+    status?: string;
+    forms?: { id: string; name: string }[];
+    isShared: boolean;
+  }
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
@@ -37,23 +53,13 @@ const ProjectPage: React.FC = () => {
     // Implement menu actions
   };
 
-  const handleStartFromScratch = async () => {
-    try {
-      const data = await createProjectWithForm({
-        formName: "form1",
-        projectName: "project1",
-      });
-      console.log("Created project and form:", data);
-      // Optionally, update state or navigate
-    } catch (error: any) {
-      console.error(error.message);
-    }
-  };
-
-  const handleCreateForm = () => {
-    console.log("Create form");
-    // Implement create form flow
-  };
+  // Filter projects to show only type "project"
+  const projectTypeItems = projects.filter(
+    (project) => project.type === "project"
+  );
+  const sharedProjectTypeItems = projectTypeItems.filter(
+    (project) => project.isShared === true
+  );
 
   return (
     <div className="dashboard">
@@ -66,51 +72,58 @@ const ProjectPage: React.FC = () => {
         </header>
         <div className="content-wrapper">
           {/* Action Cards */}
-          <div className="actions-section">
-            <div className="actions-grid">
-              <ActionCard
-                title="Start from scratch"
-                subtitle="Create your first Project now"
-                icon={file}
-                onClick={handleStartFromScratch}
-              />
-              <ActionCard
-                title="Create Form"
-                subtitle="Create your first Form now"
-                icon={form}
-                onClick={handleCreateForm}
-              />
-            </div>
-          </div>
 
-          {/* Recent Works */}
+          {/* Projects from API - Only type "project" */}
           <section className="projects-section">
-            <h2 className="section-title">Recent Works</h2>
-            <div className="projects-grid">
-              {recentProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onViewAnalysis={handleViewAnalysis}
-                  onMenuClick={handleMenuClick}
-                />
-              ))}
-            </div>
+            <h2 className="section-title">Recent Work</h2>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="projects-grid">
+                {projectTypeItems.length === 0 && <div>No projects found.</div>}
+                {projectTypeItems.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={{
+                      id: project.id,
+                      name: project.name,
+                      status: project.status,
+                      type: "project",
+                    }}
+                    onViewAnalysis={handleViewAnalysis}
+                    onMenuClick={handleMenuClick}
+                  />
+                ))}
+              </div>
+            )}
           </section>
 
-          {/* Shared Works */}
+          {/* Shared Projects - Only type "project" */}
           <section className="projects-section">
-            <h2 className="section-title">Shared Works</h2>
-            <div className="projects-grid">
-              {sharedProjects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  onViewAnalysis={handleViewAnalysis}
-                  onMenuClick={handleMenuClick}
-                />
-              ))}
-            </div>
+            <h2 className="section-title">Shared</h2>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <div className="projects-grid">
+                {sharedProjectTypeItems.length === 0 && (
+                  <div>No shared projects.</div>
+                )}
+                {sharedProjectTypeItems.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={{
+                      id: project.id,
+                      name: project.name,
+                      type: "project",
+                      status: project.status,
+                      isShared: project.isShared,
+                    }}
+                    onViewAnalysis={handleViewAnalysis}
+                    onMenuClick={handleMenuClick}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>
@@ -118,4 +131,4 @@ const ProjectPage: React.FC = () => {
   );
 };
 
-export default ProjectPage;
+export default Home;

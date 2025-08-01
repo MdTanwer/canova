@@ -62,7 +62,14 @@ function App() {
             }
           />
 
-          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/projects" element={<ProjectPage />} />
           <Route
             path="/form-builder/:id/:pageId"
