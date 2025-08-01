@@ -70,21 +70,21 @@ const Verifyotp: React.FC = () => {
       </div>
 
       {/* Main Form Card */}
-      <div className="form-card">
+      <div className="otp-form-card">
         {/* Header */}
-        <div className="form-header">
-          <h1 className="form-title">Enter Your OTP</h1>
-          <p className="form-subtitle">
+        <div className="otp-form-header">
+          <h1 className="otp-form-title">Enter Your OTP</h1>
+          <p className="otp-form-subtitle">
             We’ve sent a 6-digit OTP to your <br />
             registered mail. <br /> Please enter it below to sign in.
           </p>
         </div>
 
         {/* Form Fields */}
-        <form className="form-fields" onSubmit={handleSubmit}>
+        <form className="otp-form-fields" onSubmit={handleSubmit}>
           {/* OTP Field */}
-          <div className="field-group">
-            <label htmlFor="otp" className="field-label">
+          <div className="otp-field-group">
+            <label htmlFor="otp" className="otp-field-label">
               OTP
             </label>
             <input
@@ -93,14 +93,14 @@ const Verifyotp: React.FC = () => {
               name="otp"
               value={formData.otp}
               onChange={handleInputChange}
-              className={`form-input ${errors.otp ? "input-error" : ""}`}
+              className={`otp-form-input ${errors.otp ? "input-error" : ""}`}
               placeholder="Enter your OTP"
             />
             {errors.otp && <span className="error-message">{errors.otp}</span>}
           </div>
 
           {/* Confirm Button */}
-          <button className="submit-button" type="submit">
+          <button className="otp-submit-button" type="submit">
             Confirm
           </button>
         </form>

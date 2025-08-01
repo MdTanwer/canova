@@ -13,6 +13,7 @@ const Sendotp: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -36,6 +37,7 @@ const Sendotp: React.FC = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!validateForm()) return;
+    setLoading(true);
     try {
       await forgotPassword(formData.email);
       setSuccess("OTP sent to your email.");
@@ -49,6 +51,8 @@ const Sendotp: React.FC = () => {
       }
       setApiError(message);
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,19 +66,19 @@ const Sendotp: React.FC = () => {
         </div>
       </div>
       {/* Main Form Card */}
-      <div className="form-card">
+      <div className="otp-form-card">
         {/* Header */}
-        <div className="form-header">
-          <h1 className="form-title">Welcome CANOVA 👋</h1>
-          <p className="form-subtitle">
+        <div className="otp-form-header">
+          <h1 className="otp-form-title">Welcome CANOVA 👋</h1>
+          <p className="otp-form-subtitle">
             Please enter your registered email ID <br /> to receive an OTP
           </p>
         </div>
         {/* Form Fields */}
-        <form className="form-fields" onSubmit={handleSubmit}>
+        <form className="otp-form-fields" onSubmit={handleSubmit}>
           {/* Email Field */}
-          <div className="field-group">
-            <label htmlFor="email" className="field-label">
+          <div className="otp-field-group">
+            <label htmlFor="email" className="otp-field-label">
               Email
             </label>
             <input
@@ -83,7 +87,7 @@ const Sendotp: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`form-input ${errors.email ? "input-error" : ""}`}
+              className={`otp-form-input ${errors.email ? "input-error" : ""}`}
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -94,8 +98,12 @@ const Sendotp: React.FC = () => {
           {apiError && <div className="error-message">{apiError}</div>}
           {success && <div className="success-message">{success}</div>}
           {/* Send OTP Button */}
-          <button className="submit-button" type="submit">
-            Send OTP
+          <button
+            className="otp-submit-button"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send OTP"}
           </button>
         </form>
       </div>
