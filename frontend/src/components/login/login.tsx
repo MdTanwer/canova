@@ -36,21 +36,21 @@ const Login: React.FC<LoginProps> = ({
         </div>
       </div>
       {/* Main Form Card */}
-      <div className="form-card">
+      <div className=" signUp-form-card">
         {/* Header */}
-        <div className="form-header">
-          <h1 className="form-title">Welcome CANOVA 👋</h1>
-          <p className="form-subtitle">
+        <div className="signUp-form-header">
+          <h1 className="signUp-form-title">Welcome CANOVA 👋</h1>
+          <p className="signUp-form-subtitle">
             Today is a new day. It's your day. You shape it.
             <br />
             Sign in to start managing your projects
           </p>
         </div>
         {/* Form Fields */}
-        <form className="form-fields" onSubmit={onSubmit}>
+        <form className="signUp-form-fields" onSubmit={onSubmit}>
           {/* Email Field */}
-          <div className="field-group">
-            <label htmlFor="email" className="field-label">
+          <div className="signUp-field-group">
+            <label htmlFor="email" className="signUp-field-label">
               Email
             </label>
             <input
@@ -59,7 +59,9 @@ const Login: React.FC<LoginProps> = ({
               name="email"
               value={formData.email}
               onChange={onInputChange}
-              className={`form-input ${errors.email ? "input-error" : ""}`}
+              className={`signUp-form-input ${
+                errors.email ? "input-error" : ""
+              }`}
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -67,8 +69,8 @@ const Login: React.FC<LoginProps> = ({
             )}
           </div>
           {/* Password Field */}
-          <div className="field-group">
-            <label htmlFor="password" className="field-label">
+          <div className="signUp-field-group">
+            <label htmlFor="password" className="signUp-field-label">
               Password
             </label>
             <div className="password-input-wrapper">
@@ -79,7 +81,7 @@ const Login: React.FC<LoginProps> = ({
                 value={formData.password}
                 onChange={onInputChange}
                 placeholder="Enter your password"
-                className={`form-input password-input ${
+                className={`signUp-form-input password-input ${
                   errors.password ? "input-error" : ""
                 }`}
               />
@@ -108,7 +110,11 @@ const Login: React.FC<LoginProps> = ({
             <Link to="/forgot-password">Forgot Password?</Link>
           </div>
           {/* Login Button */}
-          <button className="submit-button" type="submit" disabled={loading}>
+          <button
+            className="signUp-submit-button"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? <span className="spinner">Loading...</span> : "Sign In"}
           </button>
         </form>

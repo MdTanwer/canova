@@ -20,14 +20,12 @@ const SignUp: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
-    setApiError(null);
   };
 
   const validateForm = (): boolean => {
@@ -68,7 +66,7 @@ const SignUp: React.FC = () => {
         // @ts-expect-error: response may exist on error
         message = err.response?.data?.message || message;
       }
-      setApiError(message);
+
       toast.error(message);
     } finally {
       setLoading(false);

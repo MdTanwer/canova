@@ -28,7 +28,7 @@
 }
 
 /* Main Form Card */
-.form-card {
+.signUp-form-card {
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -43,12 +43,12 @@
 }
 
 /* Form Header */
-.form-header {
+.sign-form-header {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.form-title {
+.signUp-form-title {
   font-family: "SF Pro Rounded", sans-serif;
   font-size: 36px;
   line-height: 1; /* 100% line-height = 1 */
@@ -57,7 +57,7 @@
   text-align: left; /* Based on alignment shown */
 }
 
-.form-subtitle {
+.signUp-form-subtitle {
   font-family: "SF Pro Display", sans-serif;
   font-weight: 400; /* Regular */
   font-size: 18px;
@@ -68,18 +68,18 @@
 }
 
 /* Form Fields */
-.form-fields {
+.signUp-form-fields {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.field-group {
+.signUp-field-group {
   display: flex;
   flex-direction: column;
 }
 
-.field-label {
+.signUp-field-label {
   font-size: 16px;
   font-weight: 500;
   color: #374151;
@@ -87,7 +87,7 @@
   display: block;
 }
 
-.form-input {
+.signUp-form-input {
   width: 90%;
   padding: 16px 18px;
   border: 1px solid #e5e7eb;
@@ -99,11 +99,11 @@
   outline: none;
 }
 
-.form-input::placeholder {
+.signUp-form-input::placeholder {
   color: #9ca3af;
 }
 
-.form-input:focus {
+.signUp-form-input:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background-color: #ffffff;
 }
@@ -159,12 +159,12 @@
 }
 
 /* Submit Button */
-.submit-button {
+.signUp-submit-button {
   width: 100%;
   padding: 16px 18px;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   color: #ffffff;
   background: #69b5f8;
@@ -173,9 +173,8 @@
   margin-top: 8px;
 }
 
-.submit-button:hover {
+.signUp-submit-button:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
 }
 
 .submit-button:active {
