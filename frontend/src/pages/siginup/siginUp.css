@@ -10,7 +10,7 @@
 }
 
 /* Logo */
-.logo-container {
+.sign-logo-container {
   padding-left: 40px;
   padding-top: 50px;
 }
@@ -28,11 +28,11 @@
 }
 
 /* Main Form Card */
-.form-card {
+.sign-form-card {
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  padding: 100px;
+  padding: 80px;
   width: 100%;
   max-width: 400px;
   margin: 0 16px;
@@ -43,12 +43,12 @@
 }
 
 /* Form Header */
-.form-header {
+.sign-form-header {
   text-align: center;
   margin-bottom: 20px;
 }
 
-.form-title {
+.sign-form-title {
   font-family: "SF Pro Rounded", sans-serif;
   font-size: 36px;
   line-height: 1; /* 100% line-height = 1 */
@@ -57,7 +57,7 @@
   text-align: left; /* Based on alignment shown */
 }
 
-.form-subtitle {
+.sign-form-subtitle {
   font-family: "SF Pro Display", sans-serif;
   font-weight: 400; /* Regular */
   font-size: 18px;
@@ -68,18 +68,18 @@
 }
 
 /* Form Fields */
-.form-fields {
+.sign-form-fields {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.field-group {
+.sign-field-group {
   display: flex;
   flex-direction: column;
 }
 
-.field-label {
+.sign-field-label {
   font-size: 16px;
   font-weight: 500;
   color: #374151;
@@ -87,7 +87,7 @@
   display: block;
 }
 
-.form-input {
+.sign-form-input {
   width: 90%;
   padding: 16px 18px;
   border: 1px solid #e5e7eb;
@@ -99,11 +99,11 @@
   outline: none;
 }
 
-.form-input::placeholder {
+.sign-form-input::placeholder {
   color: #9ca3af;
 }
 
-.form-input:focus {
+.sign-form-input:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background-color: #ffffff;
 }
@@ -159,7 +159,7 @@
 }
 
 /* Submit Button */
-.submit-button {
+.sign-submit-button {
   width: 100%;
   padding: 16px 18px;
   border: none;
@@ -175,7 +175,6 @@
 
 .submit-button:hover {
   opacity: 0.9;
-  transform: translateY(-1px);
 }
 
 .submit-button:active {

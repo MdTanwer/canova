@@ -21,6 +21,7 @@ const SignUp: React.FC = () => {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [apiError, setApiError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -56,6 +57,7 @@ const SignUp: React.FC = () => {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!validateForm()) return;
+    setLoading(true);
     try {
       await register(formData.username, formData.email, formData.password);
       toast.success("Registration successful! Please login.");
@@ -68,6 +70,8 @@ const SignUp: React.FC = () => {
       }
       setApiError(message);
       toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,28 +111,28 @@ const SignUp: React.FC = () => {
   return (
     <div className="signup-container">
       {/* Logo */}
-      <div className="logo-container">
+      <div className="sign-logo-container">
         <div className="logo-wrapper">
           <img src={vector} alt="Logo" />
           <span className="logo-text">CANOVA</span>
         </div>
       </div>
       {/* Main Form Card */}
-      <div className="form-card">
+      <div className="sign-form-card">
         {/* Header */}
-        <div className="form-header">
-          <h1 className="form-title">Welcome CANOVA 👋</h1>
-          <p className="form-subtitle">
+        <div className="sign-form-header">
+          <h1 className="sign-form-title">Welcome CANOVA 👋</h1>
+          <p className="sign-form-subtitle">
             Today is a new day. It's your day. You shape it.
             <br />
             Sign in to start managing your projects
           </p>
         </div>
         {/* Form Fields */}
-        <form className="form-fields" onSubmit={handleSubmit}>
+        <form className="sign-form-fields" onSubmit={handleSubmit}>
           {/* Username Field */}
-          <div className="field-group">
-            <label htmlFor="username" className="field-label">
+          <div className="sign-field-group">
+            <label htmlFor="username" className="sign-field-label">
               Username
             </label>
             <input
@@ -137,7 +141,9 @@ const SignUp: React.FC = () => {
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              className={`form-input ${errors.username ? "input-error" : ""}`}
+              className={`sign-form-input ${
+                errors.username ? "input-error" : ""
+              }`}
               placeholder="Enter your username"
             />
             {errors.username && (
@@ -145,8 +151,8 @@ const SignUp: React.FC = () => {
             )}
           </div>
           {/* Email Field */}
-          <div className="field-group">
-            <label htmlFor="email" className="field-label">
+          <div className="sign-field-group">
+            <label htmlFor="email" className="sign-field-label">
               Email
             </label>
             <input
@@ -155,7 +161,7 @@ const SignUp: React.FC = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`form-input ${errors.email ? "input-error" : ""}`}
+              className={`sign-form-input ${errors.email ? "input-error" : ""}`}
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -163,8 +169,8 @@ const SignUp: React.FC = () => {
             )}
           </div>
           {/* Password Field */}
-          <div className="field-group">
-            <label htmlFor="password" className="field-label">
+          <div className="sign-field-group">
+            <label htmlFor="password" className="sign-field-label">
               Password
             </label>
             <div className="password-input-wrapper">
@@ -175,7 +181,7 @@ const SignUp: React.FC = () => {
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="At least 8 characters"
-                className={`form-input password-input ${
+                className={`sign-form-input password-input ${
                   errors.password ? "input-error" : ""
                 }`}
               />
@@ -193,8 +199,8 @@ const SignUp: React.FC = () => {
             )}
           </div>
           {/* Confirm Password Field */}
-          <div className="field-group">
-            <label htmlFor="confirmPassword" className="field-label">
+          <div className="sign-field-group">
+            <label htmlFor="confirmPassword" className="sign-field-label">
               Confirm Password
             </label>
             <div className="password-input-wrapper">
@@ -205,7 +211,7 @@ const SignUp: React.FC = () => {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 placeholder="At least 8 characters"
-                className={`form-input password-input ${
+                className={`sign-form-input password-input ${
                   errors.confirmPassword ? "input-error" : ""
                 }`}
               />
@@ -222,11 +228,14 @@ const SignUp: React.FC = () => {
               <span className="error-message">{errors.confirmPassword}</span>
             )}
           </div>
-          {/* Error Message */}
-          {apiError && <div className="error-message">{apiError}</div>}
+
           {/* Sign Up Button */}
-          <button className="submit-button" type="submit">
-            Sign up
+          <button
+            className="sign-submit-button"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Signing up..." : "Sign up"}
           </button>
         </form>
         {/* Footer */}

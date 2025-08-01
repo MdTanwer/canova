@@ -5,6 +5,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   // Navigate,
 } from "react-router-dom";
 import Home from "./pages/Home/Home";
@@ -23,12 +24,13 @@ import FormBuilderPage from "./pages/formBuilderPage/formbuilderPage";
 import PageFlow from "./pages/pageFlow/pageFlow";
 import PublicAccess from "./pages/publicaccess/publicAccess";
 import PrivateAccessByEmail from "./pages/privateAccessByEmail/privateAccessByEmail";
+import { useAuth } from "./context/useAuth";
 // ProtectedRoute component
-// function ProtectedRoute({ children }: { children: React.ReactNode }) {
-//   const { user, loading } = useAuth();
-//   if (loading) return <div>Loading...</div>;
-//   return user ? children : <Navigate to="/login" replace />;
-// }
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div>Loading...</div>;
+  return user ? children : <Navigate to="/login" replace />;
+}
 
 function App() {
   return (
@@ -49,10 +51,9 @@ function App() {
           <Route
             path="/"
             element={
-              // <ProtectedRoute>
-              <Home />
-
-              // </ProtectedRoute>
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
             }
           />
 

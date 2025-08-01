@@ -10,11 +10,7 @@ interface FormData {
   requiresEmail: boolean;
 }
 
-interface FormAccessProps {
-  uniqueUrl: string;
-}
-
-const FormAccess: React.FC<FormAccessProps> = () => {
+const FormAccess = () => {
   const [form, setForm] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
