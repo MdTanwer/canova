@@ -7,6 +7,7 @@ import {
   setPassword,
   verifyOTP,
   getme,
+  updateUsername,
 } from "../controllesr/userController";
 import { validateRegistration } from "../middlewares/validation";
 import { verifyToken } from "../middlewares/authMiddleware";
@@ -20,3 +21,5 @@ userRouter.post("/send-otp", sendOTP);
 userRouter.post("/verify-otp", verifyOTP);
 userRouter.post("/set-password", setPassword);
 userRouter.get("/me", verifyToken, getme);
+// PATCH /api/users/me/username - Update username
+userRouter.patch("/me/username", verifyToken, updateUsername);

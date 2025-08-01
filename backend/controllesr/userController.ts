@@ -349,3 +349,31 @@ export const getme = async (
     next(createError("Failed to get user", 500));
   }
 };
+
+// Update user profile (username)
+export const updateUsername = async (
+  req: Request & { user?: IUser },
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { username } = req.body;
+    if (!username) {
+      return next(createError("Username is required", 400));
+    }
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+      return next(createError("User not found", 404));
+    }
+    user.username = username;
+    await user.save();
+    const { password, ...userWithoutPassword } = user.toObject();
+    res.status(200).json({
+      success: true,
+      message: "Username updated successfully",
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    next(createError("Failed to update username", 500));
+  }
+};

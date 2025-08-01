@@ -1,9 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import "../../styles/home/Sidebar.css";
+import "../../styles/formBuilder/formbuilder.css";
 import vector from "../../assets/Logo.svg";
 import home from "../../assets/home.svg";
 import anaylytics from "../../assets/project.svg";
+import logout from "../../assets/logout.svg";
 
 interface SidebarProps {
   activeItem: string;
@@ -14,17 +14,15 @@ const ProfileSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
 }) => {
-  const navigate = useNavigate();
   const menuItems = [
-    { id: "myProfile", label: "My Profile", icon: home, path: "/profile" },
+    { id: "myProfile", label: "My Profile", icon: home },
 
     {
       id: "Settings",
       label: "Settings",
       icon: anaylytics,
-      path: "/profile-settings",
     },
-    { id: "logout", label: "Logout", icon: anaylytics, path: "" },
+    { id: "logout", label: "Logout", icon: logout },
   ];
 
   return (
@@ -41,7 +39,7 @@ const ProfileSidebar: React.FC<SidebarProps> = ({
             className={`sidebar-item ${activeItem === item.id ? "active" : ""}`}
             onClick={() => {
               onItemClick(item.id);
-              navigate(item.path);
+              // navigate(item.path);
             }}
           >
             <img src={item.icon} alt={item.label} className="sidebar-icon" />
