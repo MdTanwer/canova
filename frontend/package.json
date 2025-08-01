@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/axios": "^0.9.36",
     "axios": "^1.10.0",
+    "gapi-script": "^1.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",

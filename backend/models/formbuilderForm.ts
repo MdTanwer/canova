@@ -16,7 +16,7 @@ export interface IForm extends Document {
   // New fields for access control
   isPublic: boolean;
   allowedEmails: string[];
-  uniqueUrl: string;
+  uniqueUrl?: string;
 }
 
 const FormSchema = new Schema<IForm>(
@@ -87,7 +87,7 @@ const FormSchema = new Schema<IForm>(
 
 // Generate unique URL when form is published
 FormSchema.pre("save", function (next) {
-  if (this.status === "published" && !this.uniqueUrl) {
+  if (this.status === "draft" && !this.uniqueUrl) {
     this.uniqueUrl = uuidv4();
   }
   next();

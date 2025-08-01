@@ -92,3 +92,34 @@ export interface Condition {
   falseDestinationPage?: string;
   logicOperator: "AND";
 }
+
+export interface PageFlowData {
+  hasConditions: boolean;
+  trueSequence?: Array<{
+    pageId: string;
+    pageName: string;
+    pageOrder: number;
+  }>;
+  falseSequence?: Array<{
+    pageId: string;
+    pageName: string;
+    pageOrder: number;
+  }>;
+  conditionsCount?: number;
+  message?: string;
+}
+
+export interface FormPublishSettings {
+  isPublic: boolean;
+  allowedEmails: string[];
+  responderType: "Anyone" | "Restricted";
+}
+
+export interface PublishResponse {
+  success: boolean;
+  message: string;
+  uniqueUrl?: string;
+  shareableLink?: string;
+  isPublic?: boolean;
+  allowedEmails?: string[];
+}

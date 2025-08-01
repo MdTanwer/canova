@@ -9,6 +9,7 @@ import {
   formPublich,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
+import { checkFormAccess } from "../middlewares/authMiddleware";
 export const formRouter = express.Router();
 
 // POST /api/users/register - Register a new user
@@ -18,6 +19,6 @@ formRouter.get("/pages/:formId", getPagesByFormId);
 formRouter.post("/add-page/:formId", createNextPage);
 formRouter.get("/:formId", getFormNameById);
 
-formRouter.get("/access/:uniqueUrl", getFormByUniqueUrl);
+formRouter.get("/access/:uniqueUrl", checkFormAccess, getFormByUniqueUrl);
 formRouter.post("/verify-browser-email/:uniqueUrl", verifyBrowserEmail);
 formRouter.post("/publish/:formId", formPublich);

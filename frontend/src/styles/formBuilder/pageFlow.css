@@ -1,0 +1,271 @@
+/* Add this to your pageFlow.css file */
+
+.page-flow-content {
+  padding: 24px 40px;
+  font-family: "Inter", sans-serif;
+}
+
+.current-page-info {
+  margin-bottom: 32px;
+}
+
+.current-page-info p {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.flow-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  min-height: 600px;
+}
+
+.no-conditions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Page Boxes */
+.page-box {
+  background: #ffffff;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px 24px;
+  min-width: 120px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.current-page .page-box {
+  background: #f8f9fa;
+  border-color: #4285f4;
+  border-width: 3px;
+}
+
+/* Flow Lines */
+.flow-line {
+  background: #333;
+}
+
+.flow-line.vertical {
+  width: 2px;
+  height: 40px;
+  margin: 0 auto;
+}
+
+.flow-line.vertical-short {
+  width: 2px;
+  height: 24px;
+  margin: 0 auto;
+}
+
+/* Condition Diamond */
+.condition-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0 40px 0;
+}
+
+.condition-diamond {
+  width: 80px;
+  height: 80px;
+  background: #ffffff;
+  border: 3px solid #4285f4;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  position: relative;
+}
+
+.diamond-content {
+  transform: rotate(-45deg);
+  font-size: 12px;
+  font-weight: 600;
+  color: #4285f4;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Condition Labels */
+.condition-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 200px;
+  margin-top: 16px;
+  position: relative;
+}
+
+.condition-labels::before {
+  content: "";
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 16px;
+  background: #333;
+}
+
+.condition-labels::after {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #333;
+}
+
+.true-label,
+.false-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  position: relative;
+}
+
+.true-label::before,
+.false-label::before {
+  content: "";
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 16px;
+  background: #333;
+}
+
+/* Flow Branches */
+.flow-branches {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  gap: 80px;
+}
+
+.flow-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.branch-line {
+  width: 2px;
+  height: 40px;
+  background: #333;
+  margin-bottom: 24px;
+}
+
+.sequence-nodes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .flow-branches {
+    gap: 40px;
+  }
+
+  .condition-labels {
+    width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-flow-content {
+    padding: 16px 20px;
+  }
+
+  .flow-branches {
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .condition-labels {
+    width: 120px;
+  }
+
+  .condition-diamond {
+    width: 60px;
+    height: 60px;
+  }
+
+  .diamond-content {
+    font-size: 10px;
+  }
+}
+
+/* Animation for smooth transitions */
+.flow-node {
+  transition: transform 0.2s ease;
+}
+
+.flow-node:hover {
+  transform: translateY(-2px);
+}
+
+.page-box {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.page-box:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: #4285f4;
+}
+
+/* Loading states */
+.flow-chart.loading {
+  opacity: 0.7;
+}
+
+.flow-chart.loading .page-box {
+  background: #f5f5f5;
+  color: #999;
+}
+
+/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"); */
+
+.page-next-btn {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: white;
+  background-color: #000000;
+  padding: 10px 24px;
+  border-radius: 20px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.next-btn:hover {
+  background-color: #222;
+}

@@ -21,6 +21,8 @@ import ProfilePage from "./pages/profilePage/profilepage";
 import SettingPage from "./pages/settigngPage/settingPage";
 import FormBuilderPage from "./pages/formBuilderPage/formbuilderPage";
 import PageFlow from "./pages/pageFlow/pageFlow";
+import PublicAccess from "./pages/publicaccess/publicAccess";
+import PrivateAccessByEmail from "./pages/privateAccessByEmail/privateAccessByEmail";
 // ProtectedRoute component
 // function ProtectedRoute({ children }: { children: React.ReactNode }) {
 //   const { user, loading } = useAuth();
@@ -61,7 +63,11 @@ function App() {
             path="/form-builder/:id/:pageId"
             element={<FormBuilderPage />}
           />
-
+          <Route path="/public/:uniqueUrl" element={<PublicAccess />} />
+          <Route
+            path="/private/:uniqueUrl"
+            element={<PrivateAccessByEmail />}
+          />
           <Route path="/page-flow/:id/:pageId" element={<PageFlow />} />
 
           <Route path="/profile-settings" element={<SettingPage />} />

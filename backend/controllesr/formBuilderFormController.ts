@@ -108,11 +108,11 @@ export const formPublich = async (
         .json({ success: false, message: "Form not found" });
     }
 
-    if (form.createdBy.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Only form owner can publish" });
-    }
+    // if (form.createdBy.toString() !== req.user._id.toString()) {
+    //   return res
+    //     .status(403)
+    //     .json({ success: false, message: "Only form owner can publish" });
+    // }
 
     // Update form with publish settings
     const updateData: any = {
@@ -137,7 +137,7 @@ export const formPublich = async (
       success: true,
       message: "Form published successfully",
       uniqueUrl: updatedForm?.uniqueUrl,
-      shareableLink: `${process.env.FRONTEND_URL || "http://localhost:3000"}/form/${updatedForm?.uniqueUrl}`,
+      shareableLink: `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${updatedForm?.uniqueUrl}`,
       isPublic: updatedForm?.isPublic,
       allowedEmails: updatedForm?.allowedEmails,
     });
@@ -158,7 +158,7 @@ export const getFormByUniqueUrl = async (
     res.json({
       success: true,
       form: {
-        id: form._id,
+        id: form._id as string,
         title: form.title,
         description: form.description,
         PageIds: form.PageIds,
@@ -166,6 +166,7 @@ export const getFormByUniqueUrl = async (
       },
     });
   } catch (error) {
+    console.log("error", error);
     next(error);
   }
 };
