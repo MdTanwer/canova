@@ -3,6 +3,7 @@ import ProfileSidebar from "../../features/profileSidebar/profileSidebar";
 import "../../styles/PageFlow/PageFlow.css";
 import { Navigate } from "react-router-dom";
 import Profile from "../../features/profile/profile";
+import Settings from "../../features/settings/settings";
 const ProfilePage = () => {
   const [activeItem, setActiveItem] = useState("myProfile");
 
@@ -43,7 +44,7 @@ const ProfilePage = () => {
         <div className="page-flow-content">
           <div className="current-page-info">
             {activeItem === "myProfile" && <Profile />}
-            {activeItem === "Settings" && <div> this is my settings</div>}
+            {activeItem === "Settings" && <Settings />}
           </div>
         </div>
       </div>

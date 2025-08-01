@@ -135,3 +135,100 @@
     width: 100%;
   }
 }
+
+.settings-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  background: #ffffff;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.settings-title {
+  margin: 0 0 32px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.settings-label {
+  font-size: 16px;
+  font-weight: 400;
+  color: #333333;
+  margin: 0;
+  flex: 1;
+}
+
+.settings-select-wrapper {
+  position: relative;
+  min-width: 120px;
+}
+
+.settings-select {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #e1e1e1;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333333;
+  background: #ffffff;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: border-color 0.2s ease;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.settings-select:hover {
+  border-color: #ccc;
+}
+
+.settings-select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.settings-select-arrow svg {
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 16px;
+    margin: 16px;
+  }
+
+  .settings-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .settings-select-wrapper {
+    width: 100%;
+    min-width: unset;
+  }
+}
