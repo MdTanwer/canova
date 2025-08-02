@@ -363,7 +363,7 @@ const FormBuilderPage: React.FC = () => {
       return q;
     });
 
-    console.log("Updated questions:", updatedQuestions); // Debug log
+    // Debug log
     setQuestions(updatedQuestions);
 
     // Update the page-specific cache and mark as unsaved
@@ -521,7 +521,6 @@ const FormBuilderPage: React.FC = () => {
     );
 
     setQuestions(updatedQuestions);
-    console.log("Updated questions:", updatedQuestions);
 
     // Update the page-specific cache and mark as unsaved
     if (activeItem) {
@@ -653,13 +652,13 @@ const FormBuilderPage: React.FC = () => {
                 {question.options?.map((option, idx) => (
                   <div
                     key={`${question.id}-option-${idx}`}
-                    className="option-row"
+                    className="check-option-row "
                   >
                     <div className="option-row-input">
                       <input
                         type="radio"
                         name={`q${question.id}`}
-                        className="radio-input"
+                        className="radio-radio-input"
                         // ✅ Check if this option is the correct answer
                         checked={question.correctAnswer === idx}
                         onChange={() => {
@@ -683,7 +682,7 @@ const FormBuilderPage: React.FC = () => {
                         onBlur={(e) => {
                           updateOption(question.id!, idx, e.target.value);
                         }}
-                        className="option-input editable"
+                        className="option-input"
                         placeholder="Enter option text"
                       />
                     </div>
@@ -725,11 +724,14 @@ const FormBuilderPage: React.FC = () => {
                   <div
                     key={`${question.id}-option-${idx}`}
                     className="option-row"
+                    style={{
+                      paddingBottom: "10px",
+                    }}
                   >
                     <input
                       type="checkbox"
                       name={`q${question.id}`}
-                      className="question-option-checkbox"
+                      className="checkbox-question-option-checkbox"
                       // ✅ Check if this option is in the correct answers array
                       checked={question.correctAnswers?.includes(idx) || false}
                       onChange={(e) => {
@@ -759,6 +761,10 @@ const FormBuilderPage: React.FC = () => {
                       }}
                     />
                     <input
+                      style={{
+                        border: "none",
+                        outline: "none",
+                      }}
                       key={`${question.id}-option-input-${idx}`}
                       type="text"
                       defaultValue={option}
@@ -779,20 +785,6 @@ const FormBuilderPage: React.FC = () => {
                       className="option-input editable"
                       placeholder="Enter option text"
                     />
-                    {/* ✅ Visual indicator for correct answers */}
-                    {question.correctAnswers?.includes(idx) && (
-                      <span
-                        className="correct-indicator"
-                        style={{
-                          marginLeft: "8px",
-                          color: "#4CAF50",
-                          fontWeight: "bold",
-                          fontSize: "14px",
-                        }}
-                      >
-                        ✓ Correct
-                      </span>
-                    )}
                   </div>
                 ))}
                 <button
@@ -813,15 +805,7 @@ const FormBuilderPage: React.FC = () => {
                     fontSize: "14px",
                     color: "#666",
                   }}
-                >
-                  {question.correctAnswers &&
-                    question.correctAnswers.length > 0 && (
-                      <div style={{ marginTop: "4px", fontWeight: "500" }}>
-                        Selected: {question.correctAnswers.length} correct
-                        answer{question.correctAnswers.length !== 1 ? "s" : ""}
-                      </div>
-                    )}
-                </div>
+                ></div>
               </div>
             )}
 
@@ -892,6 +876,11 @@ const FormBuilderPage: React.FC = () => {
                 style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
                 <input
+                  style={{
+                    border: "1px solid red",
+                    backgroundColor: "red",
+                    borderRadius: "10px",
+                  }}
                   type="date"
                   className="editable-date-input"
                   defaultValue={
@@ -907,31 +896,6 @@ const FormBuilderPage: React.FC = () => {
                   }}
                   style={{ fontSize: "18px", padding: "8px 12px" }}
                 />
-                <span style={{ display: "flex", alignItems: "center" }}>
-                  {/* Simple calendar SVG icon */}
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect
-                      x="3"
-                      y="4"
-                      width="18"
-                      height="18"
-                      rx="2"
-                      ry="2"
-                    ></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                </span>
               </div>
             )}
 
@@ -986,14 +950,14 @@ const FormBuilderPage: React.FC = () => {
                   }}
                 >
                   <span style={{ color: "#A0A0A0", fontSize: 16 }}>
-                    {question.scaleMin}
+                    {question.scaleMin || 0}
                   </span>
                   <div style={{ position: "relative", width: 320 }}>
                     <input
                       type="range"
-                      min={question.scaleMin}
-                      max={question.scaleMax}
-                      value={question.selectedScale}
+                      min={question.scaleMin || 0}
+                      max={question.scaleMax || 10}
+                      value={question.selectedScale || 0}
                       onChange={(e) =>
                         updateQuestion(
                           question.id!,
@@ -1041,7 +1005,7 @@ const FormBuilderPage: React.FC = () => {
                     </div>
                   </div>
                   <span style={{ color: "#A0A0A0", fontSize: 16 }}>
-                    {question.scaleMax}
+                    {question.scaleMax || 10}
                   </span>
                 </div>
               </div>

@@ -350,10 +350,10 @@
 .multiple-choice-area {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 5px;
 }
 
-.option-row {
+.check-option-row {
   display: flex;
   align-items: center;
   gap: 18px;
@@ -367,7 +367,7 @@
   gap: 10px;
 }
 
-.radio-input {
+.radio-radio-input {
   width: 28px;
   height: 28px;
   accent-color: #98b9d7;
@@ -386,6 +386,7 @@
   font-family: "Inter", sans-serif;
   font-weight: 400;
   padding: 0;
+  /* border: 1px solid red; */
 }
 
 .add-option-btn {
@@ -554,10 +555,9 @@
   color: #666;
 }
 
-.question-option-checkbox input[type="checkbox"] {
+.checkbox-question-option-checkbox[type="checkbox"] {
   margin-right: 12px;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border: 1px solid red;
+  width: 20px;
+  height: 20px;
 }
