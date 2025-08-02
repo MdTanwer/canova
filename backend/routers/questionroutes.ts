@@ -9,6 +9,12 @@ import {
   uploadReferenceMedia,
   bulkCreateQuestions,
 } from "../controllesr/formbuilderQuestionController";
+import { fileUpload } from "../controllesr/uploadmedia";
+
+import multer from "multer";
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 export const questionRouter = express.Router();
 
@@ -31,3 +37,5 @@ questionRouter.put("/page/:pageId/reorder", reorderQuestions);
 
 // Bulk create questions
 questionRouter.post("/bulk", bulkCreateQuestions);
+
+questionRouter.post("/media", upload.single("file"), fileUpload);

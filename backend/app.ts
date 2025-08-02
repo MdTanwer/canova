@@ -12,9 +12,17 @@ import { formRouter } from "./routers/formRoutes";
 import { questionRouter } from "./routers/questionRoutes";
 import { conditionRouter } from "./routers/conditionRoutes";
 import session from "express-session";
+import { v2 as cloudinary } from "cloudinary";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// cloudinary config
+cloudinary.config({
+  cloud_name: "dzwdx34yl",
+  api_key: "212821377182625",
+  api_secret: "tOLjHwOQ0rtkkLj3-nI_EVWymVI",
+});
 
 app.use(
   session({

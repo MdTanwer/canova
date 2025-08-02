@@ -287,7 +287,6 @@ export const createQuestion = async (req: Request, res: Response) => {
     });
   }
 };
-
 // 📖 GET QUESTIONS BY PAGE
 export const getQuestionsByPage = async (req: Request, res: Response) => {
   try {
