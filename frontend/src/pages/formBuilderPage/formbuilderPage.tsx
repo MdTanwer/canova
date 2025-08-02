@@ -8,7 +8,7 @@ import {
   getPages,
   createNextPages,
   getFormNmae,
-  createCondition,
+  // createCondition,
 } from "../../api/formBuilderApi";
 import {
   createQuestion,
@@ -25,6 +25,7 @@ const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#646464");
   const [sectionColor, setSectionColor] = useState("#646464");
+  console.log(setSectionColor, setBackgroundColor);
   const [allPages, setAllPages] = useState<Page[]>([]);
   const [formTitle, setFormTitle] = useState<string>("");
   const { id: formId } = useParams<{ id: string; pageId: string }>();
@@ -41,6 +42,7 @@ const FormBuilderPage: React.FC = () => {
   const [referenceUrl, setReferenceUrl] = useState("");
 
   const [openuploadMedia, setOpenuploadMedia] = useState(false);
+  console.log(referenceUrl);
 
   // Fetch pages
   useEffect(() => {
@@ -1378,7 +1380,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             <input
               type="file"
               className="preview-upload-input"
-              multiple={question.maxFiles && question.maxFiles > 1}
+              multiple={true}
               accept={question.allowedTypes?.join(",") || "*"}
               onChange={(e) => handleAnswerChange(question.id!, e.target.files)}
             />
@@ -1529,12 +1531,12 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
     console.log("🚀 Sending payload:", JSON.stringify(payload, null, 2));
 
     try {
-      const result = await createCondition(payload);
-      console.log("✅ Condition created successfully:", result);
+      // const result = await createCondition(payload);
+      // console.log("✅ Condition created successfully:", result);
       setConditionModel(false);
       setCondition(false);
       setSelectedConditionOptions({});
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Failed to create condition:", error);
       console.error("Error response:", error.response?.data);
       alert(

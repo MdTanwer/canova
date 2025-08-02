@@ -5,26 +5,23 @@ interface PublishModalProps {
   onPublish: () => void;
 }
 
-const PublishModal: React.FC<PublishModalProps> = ({
-  isOpen,
-  onClose,
-  onPublish,
-}) => {
+const PublishModal: React.FC<PublishModalProps> = ({ onClose, onPublish }) => {
   const [emails, setEmails] = useState([""]);
   const [responderType, setResponderType] = useState("Anyone");
   const [showManageDropdown, setShowManageDropdown] = useState(false);
+  console.log(setResponderType);
 
   const addEmail = () => {
     setEmails([...emails, ""]);
   };
 
-  const updateEmail = (index, value) => {
+  const updateEmail = (index: any, value: any) => {
     const newEmails = [...emails];
     newEmails[index] = value;
     setEmails(newEmails);
   };
 
-  const removeEmail = (index) => {
+  const removeEmail = (index: any) => {
     if (emails.length > 1) {
       const newEmails = emails.filter((_, i) => i !== index);
       setEmails(newEmails);
@@ -34,10 +31,6 @@ const PublishModal: React.FC<PublishModalProps> = ({
   const handleManageClick = (e: any) => {
     e.stopPropagation();
     setShowManageDropdown(!showManageDropdown);
-  };
-
-  const handleResponderSelect = (option) => {
-    setResponderType(option);
   };
 
   return (

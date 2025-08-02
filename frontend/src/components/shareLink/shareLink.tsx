@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "../../styles/formBuilder/pageFlow.css";
 import "../../styles/PageFlow/PageFlow.css";
 interface PublishModalProps {
@@ -12,11 +11,11 @@ const ShareLink: React.FC<PublishModalProps> = ({
   onClose,
   onPublish,
 }) => {
-  const [link, setLink] = useState(false);
+  // const [link, setLink] = useState(false);
 
-  const handleManageClick = (e: any) => {
-    e.stopPropagation();
-  };
+  // const handleManageClick = (e: any) => {
+  //   e.stopPropagation();
+  // };
 
   if (!isOpen) return null;
   return (

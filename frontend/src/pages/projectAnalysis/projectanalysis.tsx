@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import Sidebar from "../../components/home/Sidebar";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import "../../styles/home/Dashboard.css";
 // import { useNavigate } from "react-router-dom";
 import { getAllProjectsSummary } from "../../api/formBuilderApi";
-
+import "./projectanalysis.css";
 const Projectanalysis: React.FC = () => {
   const [activeItem, setActiveItem] = useState("home");
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -247,164 +240,6 @@ const Projectanalysis: React.FC = () => {
           </section>
         </div>
       </main>
-
-      <style jsx>{`
-        .analytics-section {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          margin-bottom: 32px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .analytics-header {
-          margin-bottom: 24px;
-        }
-
-        .analytics-controls {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 16px;
-        }
-
-        .chart-tabs {
-          display: flex;
-          gap: 24px;
-        }
-
-        .tab {
-          color: #6b7280;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          padding: 8px 0;
-          border-bottom: 2px solid transparent;
-          transition: all 0.2s;
-        }
-
-        .tab.active {
-          color: #1f2937;
-          border-bottom-color: #3b82f6;
-        }
-
-        .timeframe-selector {
-          display: flex;
-          gap: 16px;
-        }
-
-        .timeframe-btn {
-          background: none;
-          border: none;
-          color: #6b7280;
-          font-size: 14px;
-          cursor: pointer;
-          padding: 8px 12px;
-          border-radius: 6px;
-          transition: all 0.2s;
-        }
-
-        .timeframe-btn.active {
-          color: #1f2937;
-          background: #f3f4f6;
-        }
-
-        .analytics-content {
-          display: flex;
-          gap: 32px;
-          align-items: flex-start;
-        }
-
-        .analytics-cards {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          min-width: 200px;
-        }
-
-        .analytics-card {
-          background: #f8fafc;
-          border-radius: 12px;
-          padding: 20px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .card-header {
-          margin-bottom: 8px;
-        }
-
-        .card-label {
-          color: #64748b;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .card-value {
-          font-size: 32px;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 8px;
-        }
-
-        .card-growth {
-          font-size: 14px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .card-growth.positive {
-          color: #059669;
-        }
-
-        .chart-section {
-          flex: 1;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .chart-container {
-          position: relative;
-          width: 100%;
-          min-height: 200px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          padding: 16px;
-          border: 1px solid #e9ecef;
-        }
-
-        .chart-labels {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 12px;
-          padding: 0 10px;
-        }
-
-        .chart-label {
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        @media (max-width: 768px) {
-          .analytics-content {
-            flex-direction: column;
-            gap: 24px;
-          }
-
-          .analytics-cards {
-            flex-direction: row;
-            min-width: auto;
-          }
-
-          .analytics-controls {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-        }
-      `}</style>
     </div>
   );
 };

@@ -260,7 +260,6 @@ const PublishModal: React.FC<PublishModalProps> = ({
   isOpen,
   onClose,
   onPublish,
-  setShareLink,
 }) => {
   const [emails, setEmails] = useState<string[]>([""]);
   const [responderType, setResponderType] = useState<"Anyone" | "Restricted">(
@@ -276,6 +275,13 @@ const PublishModal: React.FC<PublishModalProps> = ({
   const [emailModel, setEmailModel] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  console.log(
+    error,
+    isPublishing,
+    selectedEmailIndex,
+    showEmailDropdown,
+    showManageDropdown
+  );
 
   const addEmail = () => {
     setEmails([...emails, ""]);
@@ -295,6 +301,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
       setSelectedEmailIndex(null);
     }
   };
+  console.log(removeEmail);
 
   const handleEmailEditClick = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
@@ -303,6 +310,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
     setShowManageDropdown(false);
   };
 
+  console.log(handleEmailEditClick);
   const validateEmails = (): boolean => {
     if (responderType === "Anyone") return true;
 

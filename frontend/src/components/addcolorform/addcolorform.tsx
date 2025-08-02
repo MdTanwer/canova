@@ -4,7 +4,6 @@ import { updateFormDetails } from "../../api/formBuilderApi";
 import { toast } from "react-toastify";
 type Props = {
   setFormbColor: (value: boolean) => void;
-  formId: string;
   currentColor?: string;
   onColorUpdate?: (color: string) => void;
 };

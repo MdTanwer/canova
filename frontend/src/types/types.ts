@@ -84,7 +84,6 @@ export interface ConditionRule {
 }
 
 export interface Condition {
-  _id: string;
   formId: string;
   pageId: string;
   questionIds: string[]; // Array of question ID strings

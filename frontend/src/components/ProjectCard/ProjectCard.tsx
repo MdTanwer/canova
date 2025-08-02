@@ -16,7 +16,6 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({
   project,
   onViewAnalysis,
-  onMenuClick,
 }) => {
   const getIcon = () => {
     if (project.type === "form") {
@@ -115,8 +114,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               transition: "color 0.3s ease",
             }}
             onClick={() => {
-              setResponderType("Anyone");
-              setLinkModel(false);
+              // setResponderType("Anyone");
+              // setLinkModel(false);
             }}
           >
             Share
@@ -131,8 +130,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               cursor: "pointer",
             }}
             onClick={() => {
-              setLinkModel(false);
-              setResponderType("Restricted");
+              // setLinkModel(false);
+              // setResponderType("Restricted");
             }}
           >
             {" "}
@@ -146,10 +145,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               fontSize: "20px",
               cursor: "pointer",
             }}
-            onClick={() => {
-              setLinkModel(false);
-              setResponderType("Restricted");
-            }}
+            // onClick={() => {
+            //   setLinkModel(false);
+            //   setResponderType("Restricted");
+            // }}
           >
             {" "}
             Copy

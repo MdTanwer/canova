@@ -1,4 +1,3 @@
-import React from "react";
 import Settings from "../../features/settings/settings";
 
 const SettingPage = () => {

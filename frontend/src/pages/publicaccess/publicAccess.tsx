@@ -18,6 +18,7 @@ const FormAccess = () => {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState("");
   const { uniqueUrl } = useParams();
+  console.log(form);
 
   // Fetch form data on component mount
   useEffect(() => {
@@ -37,7 +38,8 @@ const FormAccess = () => {
       } else {
         setError(data.message || "Form not found");
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.log(err);
       setError("Failed to load form");
     } finally {
       setLoading(false);
@@ -76,6 +78,7 @@ const FormAccess = () => {
         setEmailError(data.message || "Email verification failed");
       }
     } catch (err) {
+      console.log(err);
       setEmailError("Failed to verify email");
     } finally {
       setVerifying(false);
@@ -137,8 +140,8 @@ const FormAccess = () => {
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-3">{form.title}</h1>
-        <p className="text-gray-600 text-lg">{form.description}</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-3"></h1>
+        <p className="text-gray-600 text-lg">e</p>
         this is publick
       </div>
 
