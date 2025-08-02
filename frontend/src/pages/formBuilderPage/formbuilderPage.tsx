@@ -828,13 +828,13 @@ const FormBuilderPage: React.FC = () => {
                         fill={
                           question.selectedRating &&
                           idx < question.selectedRating
-                            ? "#FF3B30"
+                            ? "#69B5F8"
                             : "#E0E0E0"
                         }
                         stroke={
                           question.selectedRating &&
                           idx < question.selectedRating
-                            ? "#FF3B30"
+                            ? "#69B5F8"
                             : "#E0E0E0"
                         }
                         strokeWidth="2"
@@ -1197,7 +1197,7 @@ const FormBuilderPage: React.FC = () => {
   const handlePreview = () => {
     setShowPreview(true);
   };
-
+  // fkjhg
   return (
     <div className="form-container">
       <Sidebar
