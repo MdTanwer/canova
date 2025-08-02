@@ -252,6 +252,157 @@ export const verifyEmail = async (req: Request, res: Response) => {
   }
 };
 
-// Routes setup
-// app.get('/api/forms/:uniqueUrl', getForm);
-// app.post('/api/forms/:uniqueUrl/verify-email', verifyEmail);
+// API to update form background color
+export const updateFormBackgroundColor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    const { backgroundColor } = req.body;
+
+    // Validate required fields
+    if (!backgroundColor) {
+      return next(createError("Background color is required", 400));
+    }
+
+    // Validate color format (hex, rgb, rgba, or named colors)
+    const colorRegex =
+      /^(#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})|rgb\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)|rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*[01]?\.?\d*\)|[a-zA-Z]+)$/;
+    if (!colorRegex.test(backgroundColor)) {
+      return next(createError("Invalid color format", 400));
+    }
+
+    // Find and update the form
+    const form = await Form.findById(formId);
+    if (!form) {
+      return next(createError("Form not found", 404));
+    }
+
+    form.backgroundColor = backgroundColor;
+    await form.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Form background color updated successfully",
+      form: {
+        _id: form._id,
+        title: form.title,
+        backgroundColor: form.backgroundColor,
+        updatedAt: form.updatedAt,
+      },
+    });
+  } catch (error) {
+    next(createError("Failed to update form background color", 500));
+  }
+};
+
+// API to update form description
+export const updateFormDescription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    const { description } = req.body;
+
+    // Validate required fields
+    if (description === undefined || description === null) {
+      return next(createError("Description is required", 400));
+    }
+
+    // Optional: Validate description length
+    if (typeof description === "string" && description.length > 1000) {
+      return next(
+        createError("Description must be less than 1000 characters", 400)
+      );
+    }
+
+    // Find and update the form
+    const form = await Form.findById(formId);
+    if (!form) {
+      return next(createError("Form not found", 404));
+    }
+
+    form.description = description;
+    await form.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Form description updated successfully",
+      form: {
+        _id: form._id,
+        title: form.title,
+        description: form.description,
+        updatedAt: form.updatedAt,
+      },
+    });
+  } catch (error) {
+    next(createError("Failed to update form description", 500));
+  }
+};
+
+// Optional: Combined API to update both background color and description
+export const updateFormDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+    const { backgroundColor, description } = req.body;
+
+    // Validate at least one field is provided
+    if (!backgroundColor && description === undefined) {
+      return next(
+        createError(
+          "At least one field (backgroundColor or description) is required",
+          400
+        )
+      );
+    }
+
+    // Find the form
+    const form = await Form.findById(formId);
+    if (!form) {
+      return next(createError("Form not found", 404));
+    }
+
+    // Update fields if provided
+    if (backgroundColor) {
+      const colorRegex =
+        /^(#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})|rgb\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)|rgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*[01]?\.?\d*\)|[a-zA-Z]+)$/;
+      if (!colorRegex.test(backgroundColor)) {
+        return next(createError("Invalid color format", 400));
+      }
+      form.backgroundColor = backgroundColor;
+    }
+
+    if (description !== undefined) {
+      if (typeof description === "string" && description.length > 1000) {
+        return next(
+          createError("Description must be less than 1000 characters", 400)
+        );
+      }
+      form.description = description;
+    }
+
+    await form.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Form details updated successfully",
+      form: {
+        _id: form._id,
+        title: form.title,
+        backgroundColor: form.backgroundColor,
+        description: form.description,
+        updatedAt: form.updatedAt,
+      },
+    });
+  } catch (error) {
+    next(createError("Failed to update form details", 500));
+  }
+};

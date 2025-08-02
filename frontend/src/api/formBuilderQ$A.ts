@@ -1,4 +1,4 @@
-import type { Question } from "../types/types";
+import type { Question, UploadResponse } from "../types/types";
 import api from "./axios";
 
 // API response type for getQuestionsByPage
@@ -34,5 +34,14 @@ export const updateQuestion = async (
 export const deleteQuestion1 = async (questionId: string) => {
   console.log(questionId);
   const response = await api.delete(`/question/${questionId}`);
+  return response.data;
+};
+
+export const addMedia = async (formData: FormData): Promise<UploadResponse> => {
+  const response = await api.post<UploadResponse>("/question/media", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };

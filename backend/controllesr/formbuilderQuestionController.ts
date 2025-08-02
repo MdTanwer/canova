@@ -71,6 +71,7 @@ export const createQuestion = async (req: Request, res: Response) => {
       backgroundColor,
       correctAnswer,
       correctAnswers,
+      referenceUrl,
 
       // Reference media description (if file uploaded)
       referenceMediaDescription,
@@ -124,17 +125,6 @@ export const createQuestion = async (req: Request, res: Response) => {
     };
 
     // Handle reference media if uploaded
-    if (req.file) {
-      const fileType = req.file.mimetype.startsWith("image/")
-        ? "image"
-        : "video";
-      questionData.referenceMedia = {
-        type: fileType,
-        url: `/uploads/reference-media/${req.file.filename}`, // Adjust based on your setup
-        filename: req.file.filename,
-        description: referenceMediaDescription || "",
-      };
-    }
 
     // Set type-specific fields
     switch (type) {
@@ -148,6 +138,7 @@ export const createQuestion = async (req: Request, res: Response) => {
           });
         }
         questionData.options = options.map((opt: string) => opt.trim());
+        questionData.referenceUrl = referenceUrl;
 
         // ✅ Handle correct answers for option-based questions
         if (type === "multiple-choice" || type === "dropdowns") {
@@ -210,6 +201,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.maxLength = maxLength;
         questionData.minLength = minLength;
         questionData.backgroundColor = backgroundColor;
+        questionData.referenceUrl = referenceUrl;
 
         break;
 
@@ -217,6 +209,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.starCount = starCount || 5;
         questionData.selectedRating = selectedRating;
         questionData.backgroundColor = backgroundColor;
+        questionData.referenceUrl = referenceUrl;
         if (!selectedRating) {
           return res.status(400).json({
             success: false,
@@ -226,6 +219,7 @@ export const createQuestion = async (req: Request, res: Response) => {
         break;
       case "date":
         questionData.dateAnswer = dateAnswer;
+        questionData.referenceUrl = referenceUrl;
         questionData.backgroundColor = backgroundColor;
         if (!dateAnswer) {
           return res.status(400).json({
@@ -237,6 +231,7 @@ export const createQuestion = async (req: Request, res: Response) => {
 
       case "LinearScale":
         questionData.backgroundColor = backgroundColor;
+        questionData.referenceUrl = referenceUrl;
         questionData.selectedScale = selectedScale;
         questionData.scaleMin = scaleMin || 0;
         questionData.scaleMax = scaleMax || 10;
@@ -247,23 +242,6 @@ export const createQuestion = async (req: Request, res: Response) => {
           return res.status(400).json({
             success: false,
             message: "Scale minimum must be less than maximum",
-          });
-        }
-        break;
-
-      case "upload":
-        questionData.backgroundColor = backgroundColor;
-        questionData.maxFiles = maxFiles || 1;
-        questionData.maxFileSizeMb = maxFileSizeMb || 5;
-        questionData.allowedTypes = allowedTypes || ["image"];
-
-        if (
-          (questionData.maxFiles ?? 1) < 1 ||
-          (questionData.maxFiles ?? 1) > 10
-        ) {
-          return res.status(400).json({
-            success: false,
-            message: "Max files must be between 1 and 10",
           });
         }
         break;
@@ -363,16 +341,6 @@ export const updateQuestion = async (req: Request, res: Response) => {
       };
 
       // Delete old reference media file if exists
-      const existingQuestion = await Question.findById(questionId);
-      if (existingQuestion?.referenceMedia?.filename) {
-        try {
-          await fs.unlink(
-            `uploads/reference-media/${existingQuestion.referenceMedia.filename}`
-          );
-        } catch (err) {
-          console.warn("Failed to delete old reference media file");
-        }
-      }
     }
 
     const updatedQuestion = await Question.findByIdAndUpdate(
@@ -416,15 +384,6 @@ export const deleteQuestion = async (req: Request, res: Response) => {
     }
 
     // Delete reference media file if exists
-    if (question.referenceMedia?.filename) {
-      try {
-        await fs.unlink(
-          `uploads/reference-media/${question.referenceMedia.filename}`
-        );
-      } catch (err) {
-        console.warn("Failed to delete reference media file");
-      }
-    }
 
     await Question.findByIdAndDelete(questionId);
 

@@ -67,13 +67,14 @@ export interface Question {
   allowedTypes?: string[];
   correctAnswer?: number;
   correctAnswers?: number[];
+  referenceUrl: string;
 
   // Reference media
   referenceMedia?: {
     type: "image" | "video";
     url: string;
-    filename: string;
-    description?: string;
+    description: string;
+    fileName?: string;
   };
 }
 
@@ -123,4 +124,23 @@ export interface PublishResponse {
   shareableLink?: string;
   isPublic?: boolean;
   allowedEmails?: string[];
+}
+
+export interface UploadResponse {
+  success: boolean;
+  media: {
+    _id: string;
+    mediaType: "image" | "video";
+    file: {
+      public_id: string;
+      url: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+    __v?: number;
+  };
+}
+export interface UploadPayload {
+  file: File; // HTML File object (from input)
+  mediaType: "image" | "video"; // optional, default is image
 }

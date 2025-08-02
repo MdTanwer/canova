@@ -86,7 +86,7 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.color-picker-wrapper {
+.apt-color-picker-wrapper {
   display: flex;
   gap: 8px;
   background: white;
@@ -95,7 +95,7 @@
   padding: 8px 12px;
 }
 
-.color-preview {
+.apt-color-preview {
   width: 24px;
   height: 24px;
   border-radius: 4px;
@@ -103,7 +103,7 @@
   flex-shrink: 0;
 }
 
-.color-input {
+.apt-color-input {
   flex: 1;
   border: none;
   outline: none;

@@ -9,6 +9,7 @@ export interface IForm extends Document {
   PageIds?: Schema.Types.ObjectId[];
   createdBy: Schema.Types.ObjectId;
   projectId?: Schema.Types.ObjectId;
+  backgroundColor: string;
   version: number;
   isShared?: boolean;
   createdAt: Date;
@@ -31,6 +32,9 @@ const FormSchema = new Schema<IForm>(
     isShared: {
       type: Boolean,
       default: false,
+    },
+    backgroundColor: {
+      type: String,
     },
     description: {
       type: String,

@@ -22,12 +22,19 @@ export interface IQuestion extends Document {
 
   // 🆕 Reference media (when you show media and ask about it)
   referenceMedia?: {
-    type: "image" | "video";
-    url: string;
-    filename: string;
-    description?: string;
+    type:
+      | "short"
+      | "long"
+      | "multiple-choice"
+      | "time"
+      | "rating"
+      | "checkbox"
+      | "dropdowns"
+      | "date"
+      | "LinearScale"
+      | "upload";
   };
-
+  referenceUrl?: string;
   // Option-based questions
   options?: string[];
 
@@ -67,6 +74,7 @@ const QuestionSchema = new Schema<IQuestion>(
       ref: "Page",
       required: true,
     },
+    referenceUrl: String,
     type: {
       type: String,
       enum: [

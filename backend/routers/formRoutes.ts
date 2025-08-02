@@ -7,6 +7,8 @@ import {
   getFormByUniqueUrl,
   formPublich,
   verifyEmail,
+  updateFormBackgroundColor,
+  updateFormDescription,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 import { checkFormAccess } from "../middlewares/authMiddleware";
@@ -22,3 +24,5 @@ formRouter.get("/:formId", getFormNameById);
 formRouter.get("/access/:uniqueUrl", checkFormAccess, getFormByUniqueUrl);
 formRouter.post("/verify-browser-email/:uniqueUrl", verifyEmail);
 formRouter.post("/publish/:formId", formPublich);
+formRouter.put("/color/:formId", updateFormBackgroundColor);
+formRouter.put("/desc/:formId", updateFormDescription);

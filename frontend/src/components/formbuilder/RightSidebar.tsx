@@ -19,8 +19,8 @@ interface RightSidebarProps {
   onAddSections?: () => void;
   backgroundColor?: string;
   sectionColor?: string;
-  onBackgroundColorChange?: (color: string) => void;
-  onSectionColorChange?: (color: string) => void;
+  onBackgroundColorChange?: () => void;
+  onSectionColorChange?: () => void;
 }
 
 const RightSidebar: React.FC<RightSidebarProps> = ({
@@ -97,34 +97,32 @@ const RightSidebar: React.FC<RightSidebarProps> = ({
       <div className="styling-section">
         <div className="color-option">
           <label className="color-label">Background Color</label>
-          <div className="color-picker-wrapper">
+          <div
+            className="apt-color-picker-wrapper "
+            onClick={onBackgroundColorChange}
+            style={{ cursor: "pointer" }}
+          >
             <div
-              className="color-preview"
+              className="apt-color-preview"
               style={{ backgroundColor: backgroundColor }}
             ></div>
-            <input
-              type="text"
-              value={backgroundColor}
-              className="color-input"
-              onChange={(e) => onBackgroundColorChange?.(e.target.value)}
-            />
+            <p className="apt-color-input"></p>
             <span className="opacity-value">100%</span>
           </div>
         </div>
 
         <div className="color-option">
           <label className="color-label">Section Color</label>
-          <div className="color-picker-wrapper">
+          <div
+            className="apt-color-picker-wrapper"
+            onClick={onSectionColorChange}
+            style={{ cursor: "pointer" }}
+          >
             <div
-              className="color-preview"
+              className="apt-color-preview"
               style={{ backgroundColor: sectionColor }}
             ></div>
-            <input
-              type="text"
-              value={sectionColor}
-              className="color-input"
-              onChange={(e) => onSectionColorChange?.(e.target.value)}
-            />
+            <p className="apt-color-input"></p>
             <span className="opacity-value">100%</span>
           </div>
         </div>

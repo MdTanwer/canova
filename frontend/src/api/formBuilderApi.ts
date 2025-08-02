@@ -78,3 +78,38 @@ export const deleteById = async (id: string) => {
   const response = await api.delete(`/project/${id}`);
   return response.data;
 };
+
+interface FormUpdateResponse {
+  success: boolean;
+  message: string;
+}
+
+interface UpdateFormDetailsPayload {
+  backgroundColor?: string;
+  description?: string;
+}
+
+// Update form background color
+
+// Update form description
+export const updateFormDescription = async (
+  formId: string,
+  description: string
+): Promise<FormUpdateResponse> => {
+  const response = await api.put<FormUpdateResponse>(`/form/desc/${formId}`, {
+    description,
+  });
+  return response.data;
+};
+
+// Update both background color and description (combined)
+export const updateFormDetails = async (
+  formId: string,
+  updates: UpdateFormDetailsPayload
+): Promise<FormUpdateResponse> => {
+  const response = await api.put<FormUpdateResponse>(
+    `/form/color/${formId}`,
+    updates
+  );
+  return response.data;
+};

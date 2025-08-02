@@ -16,6 +16,10 @@ import {
   deleteQuestion1,
 } from "../../api/formBuilderQ$A";
 import type { Page, Question } from "../../types/types";
+import Uploadmedia from "../../components/uploadmedia/uploadmedia";
+
+import AddDes from "../../components/addDescriptionForm/addDes";
+import Addcolorform from "../../components/addcolorform/addcolorform";
 
 const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("");
@@ -31,6 +35,12 @@ const FormBuilderPage: React.FC = () => {
   const [selectedConditionOptions, setSelectedConditionOptions] = useState<{
     [questionId: string]: number;
   }>({});
+  const [formbColor, setFormbColor] = useState(false);
+  const [descriptionForm, setDescriptionForm] = useState(false);
+
+  const [referenceUrl, setReferenceUrl] = useState("");
+
+  const [openuploadMedia, setOpenuploadMedia] = useState(false);
 
   // Fetch pages
   useEffect(() => {
@@ -150,7 +160,7 @@ const FormBuilderPage: React.FC = () => {
   //   console.log("");
   // };
   const handleAddText = () => {
-    console.log("Add Text clicked");
+    setDescriptionForm(true);
   };
 
   const handleAddCondition = async () => {
@@ -171,11 +181,11 @@ const FormBuilderPage: React.FC = () => {
   };
 
   const handleAddImage = () => {
-    console.log("Add Image clicked");
+    setOpenuploadMedia(true);
   };
 
   const handleAddVideo = () => {
-    console.log("Add Video clicked");
+    setOpenuploadMedia(true);
   };
 
   const handleAddSections = () => {
@@ -242,6 +252,7 @@ const FormBuilderPage: React.FC = () => {
           selectedScale: question.selectedScale,
           correctAnswer: question.correctAnswer,
           correctAnswers: question.correctAnswers,
+          referenceUrl: question.referenceUrl,
         };
 
         const result = (await createQuestion(questionData)) as {
@@ -288,12 +299,23 @@ const FormBuilderPage: React.FC = () => {
   const updateQuestion = (
     id: string,
     field: keyof Question,
-    value: Question[keyof Question]
+    value: Question[keyof Question],
+    referenceUrl?: string
   ) => {
     // Update local state immediately for UI responsiveness
-    const updatedQuestions = questions.map((q) =>
-      q.id === id ? { ...q, [field]: value } : q
-    );
+    const updatedQuestions = questions.map((q) => {
+      if (q.id === id) {
+        const updatedQuestion = { ...q, [field]: value };
+
+        // Add referenceUrl if provided
+        if (referenceUrl !== undefined) {
+          updatedQuestion.referenceUrl = referenceUrl;
+        }
+
+        return updatedQuestion;
+      }
+      return q;
+    });
     setQuestions(updatedQuestions);
 
     console.log("Updated questions:", updatedQuestions); // Debug log
@@ -363,7 +385,7 @@ const FormBuilderPage: React.FC = () => {
       return q;
     });
 
-    // Debug log
+    console.log("Updated questions:", updatedQuestions); // Debug log
     setQuestions(updatedQuestions);
 
     // Update the page-specific cache and mark as unsaved
@@ -442,6 +464,7 @@ const FormBuilderPage: React.FC = () => {
       question: "What is ?",
       order: questions.length,
       required: false,
+      referenceUrl: "",
       options:
         type === "multiple-choice" ||
         type === "checkbox" ||
@@ -457,6 +480,7 @@ const FormBuilderPage: React.FC = () => {
         type === "checkbox"
           ? [] // Empty array for multi-select
           : undefined,
+
       starCount: type === "rating" ? 5 : undefined,
       selectedRating: type === "rating" ? 0 : undefined,
       scaleStartLabel: type === "LinearScale" ? "Scale Starting" : undefined,
@@ -521,6 +545,7 @@ const FormBuilderPage: React.FC = () => {
     );
 
     setQuestions(updatedQuestions);
+    console.log("Updated questions:", updatedQuestions);
 
     // Update the page-specific cache and mark as unsaved
     if (activeItem) {
@@ -590,35 +615,11 @@ const FormBuilderPage: React.FC = () => {
               <option value="upload">Upload</option>
             </select>
           </div>
-
           <div className="answer-area">
             {/* Reference Media Display */}
-            {question.referenceMedia && (
-              <div className="reference-media" style={{ marginBottom: "16px" }}>
-                {question.referenceMedia.type === "image" ? (
-                  <img
-                    src={question.referenceMedia.url}
-                    alt={question.referenceMedia.description}
-                    style={{
-                      maxWidth: "300px",
-                      maxHeight: "200px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <video
-                    src={question.referenceMedia.url}
-                    controls
-                    style={{ maxWidth: "300px", maxHeight: "200px" }}
-                  />
-                )}
-                <p>{question.referenceMedia.description}</p>
-              </div>
-            )}
 
             {/* ✅ FIXED SHORT ANSWER INPUT */}
             {question.type === "short" && (
-              // <div className="short-answer-preview">
               <textarea
                 className="editable-answer-input"
                 defaultValue={question.placeholder || ""} // ✅ Use defaultValue instead
@@ -629,6 +630,7 @@ const FormBuilderPage: React.FC = () => {
                 placeholder="Enter placeholder text"
                 maxLength={question.maxLength}
               />
+
               // </div>
             )}
 
@@ -639,7 +641,12 @@ const FormBuilderPage: React.FC = () => {
                   defaultValue={question.placeholder || ""} // ✅ Use defaultValue
                   onBlur={(e) => {
                     // ✅ Update only when user finishes editing
-                    updateQuestion(question.id!, "placeholder", e.target.value);
+                    updateQuestion(
+                      question.id!,
+                      "placeholder",
+                      e.target.value,
+                      "abc.url.com"
+                    );
                   }}
                   placeholder="Set placeholder text"
                   rows={4}
@@ -652,7 +659,8 @@ const FormBuilderPage: React.FC = () => {
                 {question.options?.map((option, idx) => (
                   <div
                     key={`${question.id}-option-${idx}`}
-                    className="check-option-row "
+                    className="option-row"
+                    style={{ paddingBottom: "10px" }}
                   >
                     <div className="option-row-input">
                       <input
@@ -682,7 +690,8 @@ const FormBuilderPage: React.FC = () => {
                         onBlur={(e) => {
                           updateOption(question.id!, idx, e.target.value);
                         }}
-                        className="option-input"
+                        className="option-input editable"
+                        style={{ border: "none" }}
                         placeholder="Enter option text"
                       />
                     </div>
@@ -724,9 +733,7 @@ const FormBuilderPage: React.FC = () => {
                   <div
                     key={`${question.id}-option-${idx}`}
                     className="option-row"
-                    style={{
-                      paddingBottom: "10px",
-                    }}
+                    style={{ paddingBottom: "10px" }}
                   >
                     <input
                       type="checkbox"
@@ -761,10 +768,6 @@ const FormBuilderPage: React.FC = () => {
                       }}
                     />
                     <input
-                      style={{
-                        border: "none",
-                        outline: "none",
-                      }}
                       key={`${question.id}-option-input-${idx}`}
                       type="text"
                       defaultValue={option}
@@ -784,7 +787,22 @@ const FormBuilderPage: React.FC = () => {
                       }}
                       className="option-input editable"
                       placeholder="Enter option text"
+                      style={{ border: "none" }}
                     />
+                    {/* ✅ Visual indicator for correct answers */}
+                    {question.correctAnswers?.includes(idx) && (
+                      <span
+                        className="correct-indicator"
+                        style={{
+                          marginLeft: "8px",
+                          color: "#4CAF50",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                        }}
+                      >
+                        ✓ Correct
+                      </span>
+                    )}
                   </div>
                 ))}
                 <button
@@ -805,7 +823,15 @@ const FormBuilderPage: React.FC = () => {
                     fontSize: "14px",
                     color: "#666",
                   }}
-                ></div>
+                >
+                  {question.correctAnswers &&
+                    question.correctAnswers.length > 0 && (
+                      <div style={{ marginTop: "4px", fontWeight: "500" }}>
+                        Selected: {question.correctAnswers.length} correct
+                        answer{question.correctAnswers.length !== 1 ? "s" : ""}
+                      </div>
+                    )}
+                </div>
               </div>
             )}
 
@@ -828,13 +854,13 @@ const FormBuilderPage: React.FC = () => {
                         fill={
                           question.selectedRating &&
                           idx < question.selectedRating
-                            ? "#69B5F8"
+                            ? "#FF3B30"
                             : "#E0E0E0"
                         }
                         stroke={
                           question.selectedRating &&
                           idx < question.selectedRating
-                            ? "#69B5F8"
+                            ? "#FF3B30"
                             : "#E0E0E0"
                         }
                         strokeWidth="2"
@@ -876,11 +902,6 @@ const FormBuilderPage: React.FC = () => {
                 style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
                 <input
-                  style={{
-                    border: "1px solid red",
-                    backgroundColor: "red",
-                    borderRadius: "10px",
-                  }}
                   type="date"
                   className="editable-date-input"
                   defaultValue={
@@ -896,6 +917,31 @@ const FormBuilderPage: React.FC = () => {
                   }}
                   style={{ fontSize: "18px", padding: "8px 12px" }}
                 />
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {/* Simple calendar SVG icon */}
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </span>
               </div>
             )}
 
@@ -950,14 +996,14 @@ const FormBuilderPage: React.FC = () => {
                   }}
                 >
                   <span style={{ color: "#A0A0A0", fontSize: 16 }}>
-                    {question.scaleMin || 0}
+                    {question.scaleMin}
                   </span>
                   <div style={{ position: "relative", width: 320 }}>
                     <input
                       type="range"
-                      min={question.scaleMin || 0}
-                      max={question.scaleMax || 10}
-                      value={question.selectedScale || 0}
+                      min={question.scaleMin}
+                      max={question.scaleMax}
+                      value={question.selectedScale}
                       onChange={(e) =>
                         updateQuestion(
                           question.id!,
@@ -1005,188 +1051,14 @@ const FormBuilderPage: React.FC = () => {
                     </div>
                   </div>
                   <span style={{ color: "#A0A0A0", fontSize: 16 }}>
-                    {question.scaleMax || 10}
+                    {question.scaleMax}
                   </span>
                 </div>
               </div>
             )}
 
             {question.type === "upload" && (
-              <div className="upload-area" style={{ marginTop: 24 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 32,
-                    marginBottom: 0,
-                  }}
-                >
-                  {/* Left column: Number of Files and Max File Size */}
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 12,
-                      minWidth: 140,
-                    }}
-                  >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 12 }}
-                    >
-                      <span style={{ minWidth: 110 }}>Number of Files:</span>
-                      <input
-                        key={`${question.id}-max-files`}
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={question.maxFiles || 1}
-                        onChange={(e) =>
-                          updateQuestion(
-                            question.id!,
-                            "maxFiles",
-                            Number(e.target.value)
-                          )
-                        }
-                        style={{
-                          width: 48,
-                          textAlign: "center",
-                          borderRadius: 10,
-                          border: "none",
-                          background: "#E9F1F7",
-                          fontWeight: 600,
-                          fontSize: 16,
-                          padding: "4px 0",
-                        }}
-                      />
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 12 }}
-                    >
-                      <span style={{ minWidth: 110 }}>Max File Size:</span>
-                      <input
-                        key={`${question.id}-max-size`}
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={question.maxFileSizeMb || 1}
-                        onChange={(e) =>
-                          updateQuestion(
-                            question.id!,
-                            "maxFileSizeMb",
-                            Number(e.target.value)
-                          )
-                        }
-                        style={{
-                          width: 48,
-                          textAlign: "center",
-                          borderRadius: 10,
-                          border: "none",
-                          background: "#E9F1F7",
-                          fontWeight: 600,
-                          fontSize: 16,
-                          padding: "4px 0",
-                          marginRight: 4,
-                        }}
-                      />
-                      <span
-                        style={{
-                          background: "#E9F1F7",
-                          borderRadius: 10,
-                          padding: "4px 12px",
-                          fontWeight: 600,
-                          fontSize: 16,
-                          marginLeft: -8,
-                        }}
-                      >
-                        mb
-                      </span>
-                    </div>
-                  </div>
-                  {/* Right column: File type checkboxes */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(4, 1fr)",
-                      gap: 16,
-                      maxWidth: 520,
-                      width: "100%",
-                    }}
-                  >
-                    {[
-                      "image",
-                      "pdf",
-                      "ppt",
-                      "document",
-                      "video",
-                      "zip",
-                      "audio",
-                      "spreadsheet",
-                    ].map((type) => (
-                      <label
-                        key={`${question.id}-file-type-${type}`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          fontWeight: 500,
-                          fontSize: 16,
-                          cursor: "pointer",
-                          userSelect: "none",
-                          margin: 0,
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={
-                            question.allowedTypes?.includes(type) || false
-                          }
-                          onChange={(e) => {
-                            const allowed = question.allowedTypes || [];
-                            if (e.target.checked) {
-                              updateQuestion(question.id!, "allowedTypes", [
-                                ...allowed,
-                                type,
-                              ]);
-                            } else {
-                              updateQuestion(
-                                question.id!,
-                                "allowedTypes",
-                                allowed.filter((t) => t !== type)
-                              );
-                            }
-                          }}
-                          style={{
-                            width: 18,
-                            height: 18,
-                            accentColor: "#4BA3FD",
-                            borderRadius: 4,
-                            marginRight: 4,
-                          }}
-                        />
-                        {type}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                <select
-                  key={`${question.id}-type`} // ✅ Stable key
-                  className="answer-type-dropdown"
-                  value={question.type}
-                  onChange={(e) =>
-                    updateQuestion(question.id!, "type", e.target.value)
-                  }
-                >
-                  <option value="short">Short Answer</option>
-                  <option value="long">Long Answer</option>
-                  <option value="multiple-choice">Multiple Choice</option>
-                  <option value="dropdowns">Dropdowns</option>
-                  <option value="date">Date</option>
-                  <option value="checkbox">Checkbox</option>
-                  <option value="rating">Rating</option>
-                  <option value="LinearScale">Linear Scale</option>
-                  <option value="upload">Upload</option>
-                </select>
-              </div>
+              <div className="upload-area" style={{ marginTop: 24 }}></div>
             )}
           </div>
         </div>
@@ -1197,7 +1069,16 @@ const FormBuilderPage: React.FC = () => {
   const handlePreview = () => {
     setShowPreview(true);
   };
-  // fkjhg
+
+  const addBackgroundColor = () => {
+    console.log("");
+    setFormbColor(true);
+  };
+
+  const addSectionColorChange = () => {
+    console.log("dfkjkhd");
+  };
+
   return (
     <div className="form-container">
       <Sidebar
@@ -1270,14 +1151,16 @@ const FormBuilderPage: React.FC = () => {
                 onAddSections={handleAddSections}
                 backgroundColor={backgroundColor}
                 sectionColor={sectionColor}
-                onBackgroundColorChange={setBackgroundColor}
-                onSectionColorChange={setSectionColor}
+                onBackgroundColorChange={addBackgroundColor}
+                onSectionColorChange={addSectionColorChange}
               />
             </div>
           </div>
         </div>
       </main>
 
+      {descriptionForm && <AddDes setDescriptionForm={setDescriptionForm} />}
+      {formbColor && <Addcolorform setFormbColor={setFormbColor} />}
       <PreviewModal
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
@@ -1288,6 +1171,12 @@ const FormBuilderPage: React.FC = () => {
         }
       />
 
+      {openuploadMedia && (
+        <Uploadmedia
+          setOpenuploadMedia={setOpenuploadMedia}
+          setReferenceUrl={setReferenceUrl}
+        />
+      )}
       {conditionModel && (
         <ConditionModel
           pages={allPages}
