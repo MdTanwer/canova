@@ -4,6 +4,7 @@ import { Form, Page, Question } from "../models/Index";
 import { AccessPermission } from "../models/formbuilderForm";
 import { v4 as uuidv4 } from "uuid";
 import { Answer } from "../models/Question";
+import { DailyViews } from "../models/DailyViews";
 
 export const createRandomForm = async (
   req: Request,
@@ -98,6 +99,40 @@ interface EmailAccessRequest {
   email: string;
   permissions: AccessPermission[];
 }
+
+export const updateFormTitle = async (req: Request, res: Response) => {
+  const { formId } = req.params;
+  const { title } = req.body;
+
+  if (!title || typeof title !== "string") {
+    return res.status(400).json({
+      success: false,
+      message: "Title is required and must be a string.",
+    });
+  }
+
+  try {
+    const updatedForm = await Form.findByIdAndUpdate(
+      formId,
+      { title },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Form not found." });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Form title updated successfully.",
+      form: updatedForm,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error });
+  }
+};
 
 export const formPublish = async (
   req: any,
@@ -628,6 +663,67 @@ export const attemptQuestion = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: "Failed to submit answer",
+    });
+  }
+};
+
+// Increment form views when public access page is visited
+export const incrementFormViews = async (req: Request, res: Response) => {
+  try {
+    const { uniqueUrl } = req.params;
+    
+    if (!uniqueUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "uniqueUrl is required",
+      });
+    }
+
+    // Find the form first
+    const form = await Form.findOne({ uniqueUrl });
+    if (!form) {
+      return res.status(404).json({
+        success: false,
+        message: "Form not found",
+      });
+    }
+
+    // Get today's date (start of day in UTC)
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    // Update or create daily view record
+    await DailyViews.findOneAndUpdate(
+      { 
+        formId: form._id,
+        date: today
+      },
+      { 
+        $inc: { views: 1 }
+      },
+      { 
+        upsert: true, // Create if doesn't exist
+        new: true 
+      }
+    );
+
+    // Also increment the total views counter for backward compatibility
+    await Form.findByIdAndUpdate(
+      form._id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Form view incremented successfully",
+      views: form.views + 1,
+    });
+  } catch (error) {
+    console.error("Error incrementing form views:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to increment form views",
     });
   }
 };

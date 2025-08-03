@@ -37,6 +37,7 @@ export interface IForm extends Document {
   emailAccess: IEmailAccess[]; // New granular access control
   uniqueUrl: string;
   shareUrl?: string;
+  views: number;
 
   // Methods for access control
   hasPermission(email: string, permission: AccessPermission): boolean;
@@ -145,6 +146,10 @@ const FormSchema = new Schema<IForm>(
     },
     publishedAt: {
       type: Date,
+    },
+    views: {
+      type: Number,
+      default: 0,
     },
   },
   {

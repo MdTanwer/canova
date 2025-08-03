@@ -10,6 +10,8 @@ import { createForm } from "../../api/formBuilderApi";
 import { useNavigate } from "react-router-dom";
 import { getAllProjectsSummary } from "../../api/formBuilderApi";
 import { useEffect } from "react";
+import EditformModal from "../../components/ProjectCard/editformName";
+import EditprojectModel from "../../components/ProjectCard/editProject";
 
 const Home: React.FC = () => {
   const [activeItem, setActiveItem] = useState("home");
@@ -110,6 +112,54 @@ const Home: React.FC = () => {
       console.error("Failed to create project:", error);
     }
   };
+  const [editFormModalOpen, setEditFormModalOpen] = useState(false);
+  const [editingForm, setEditingForm] = useState<{ id: string; name: string } | null>(null);
+  const [editProjectModalOpen, setEditProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<{ id: string; name: string } | null>(null);
+
+  // Handlers for form editing
+  const handleOpenEditFormModal = (formId: string, formName: string) => {
+    setEditingForm({ id: formId, name: formName });
+    setEditFormModalOpen(true);
+  };
+
+  const handleCloseEditFormModal = () => {
+    setEditFormModalOpen(false);
+    setEditingForm(null);
+  };
+
+  const handleFormNameUpdated = (newName: string) => {
+    // Update the projects list with the new name
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === editingForm?.id 
+          ? { ...project, name: newName }
+          : project
+      )
+    );
+  };
+
+  // Handlers for project editing
+  const handleOpenEditProjectModal = (projectId: string, projectName: string) => {
+    setEditingProject({ id: projectId, name: projectName });
+    setEditProjectModalOpen(true);
+  };
+
+  const handleCloseEditProjectModal = () => {
+    setEditProjectModalOpen(false);
+    setEditingProject(null);
+  };
+
+  const handleProjectNameUpdated = (newName: string) => {
+    // Update the projects list with the new name
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === editingProject?.id 
+          ? { ...project, name: newName }
+          : project
+      )
+    );
+  };
 
   return (
     <div className="dashboard">
@@ -158,6 +208,16 @@ const Home: React.FC = () => {
                     }}
                     onViewAnalysis={handleViewAnalysis}
                     onMenuClick={handleMenuClick}
+                    setProjectName={(value: boolean) => {
+                      if (value) {
+                        if (project.type === "form") {
+                          handleOpenEditFormModal(project.id, project.name);
+                        } else if (project.type === "project") {
+                          handleOpenEditProjectModal(project.id, project.name);
+                        }
+                      }
+                    }}
+                    setProjectId={() => {}}
                   />
                 ))}
               </div>
@@ -187,6 +247,16 @@ const Home: React.FC = () => {
                       }}
                       onViewAnalysis={handleViewAnalysis}
                       onMenuClick={handleMenuClick}
+                      setProjectName={(value: boolean) => {
+                        if (value) {
+                          if (project.type === "form") {
+                            handleOpenEditFormModal(project.id, project.name);
+                          } else if (project.type === "project") {
+                            handleOpenEditProjectModal(project.id, project.name);
+                          }
+                        }
+                      }}
+                      setProjectId={() => {}}
                     />
                   ))}
               </div>
@@ -199,6 +269,26 @@ const Home: React.FC = () => {
           isOpen={isCreateProjectModalOpen}
           onClose={handleCloseCreateProjectModal}
           onCreateProject={handleCreateProject}
+        />
+      )}
+
+      {editFormModalOpen && editingForm && (
+        <EditformModal
+          isOpen={editFormModalOpen}
+          onClose={handleCloseEditFormModal}
+          formId={editingForm.id}
+          currentFormName={editingForm.name}
+          onFormNameUpdated={handleFormNameUpdated}
+        />
+      )}
+
+      {editProjectModalOpen && editingProject && (
+        <EditprojectModel
+          isOpen={editProjectModalOpen}
+          onClose={handleCloseEditProjectModal}
+          projectId={editingProject.id}
+          currentProjectName={editingProject.name}
+          onProjectNameUpdated={handleProjectNameUpdated}
         />
       )}
     </div>

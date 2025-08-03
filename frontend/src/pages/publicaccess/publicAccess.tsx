@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "./publicAccess.css";
 import PrivateAccess from "../privateAccessByEmail/privateAccessByEmail";
+import { incrementFormViews } from "../../api/formBuilderApi";
 
 interface FormData {
   id: string;
@@ -41,6 +42,9 @@ const FormAccess = () => {
         if (data.form.isPublic || !data.form.requiresEmail) {
           setHasAccess(true);
         }
+        
+        // Increment form views when form is successfully accessed
+        await incrementViews();
       } else {
         setError(data.message || "Form not found");
       }
@@ -49,6 +53,18 @@ const FormAccess = () => {
       setError("Failed to load form");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const incrementViews = async () => {
+    try {
+      if (uniqueUrl) {
+        await incrementFormViews(uniqueUrl);
+        console.log("Form view incremented successfully");
+      }
+    } catch (error) {
+      console.error("Failed to increment form views:", error);
+      // Don't show error to user as this is a background operation
     }
   };
 

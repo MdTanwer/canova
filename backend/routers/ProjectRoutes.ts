@@ -5,6 +5,8 @@ import {
   getAllProjectsSummary,
   deleteById,
   getAllProjects,
+  renameProject,
+  getProjectAnalytics,
 } from "../controllesr/formBuilderProjectController";
 
 
@@ -17,4 +19,6 @@ projectRouter.get("/summary", getAllProjectsSummary);
 // DELETE /api/projects/:id - Delete project or form by id
 projectRouter.delete("/:id", deleteById);
 projectRouter.get("/", getAllProjects);
-
+projectRouter.put("/rename/:id", renameProject);
+// Get project analytics
+projectRouter.get("/analytics/:projectId", getProjectAnalytics);

@@ -11,6 +11,8 @@ import {
   formPublish,
   getFormShareUrl,
   attemptQuestion,
+  updateFormTitle,
+  incrementFormViews,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 import { checkFormAccess } from "../middlewares/authMiddleware";
@@ -30,3 +32,5 @@ formRouter.put("/color/:formId", updateFormBackgroundColor);
 formRouter.put("/desc/:formId", updateFormDescription);
 formRouter.get("/shareUrl/:formId", getFormShareUrl);
 formRouter.post("/shareUrl/:formId", attemptQuestion);
+formRouter.put("/rename/:formId", updateFormTitle);
+formRouter.post("/views/:uniqueUrl", incrementFormViews);

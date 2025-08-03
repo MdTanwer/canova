@@ -38,6 +38,72 @@ export const getFormNmae = async (formId: string) => {
   return response.data;
 };
 
+export const updateFormTitle = async (formId: string, title: string) => {
+  const response = await api.put(`/form/rename/${formId}`, { title });
+  return response.data;
+};
+
+export const updateProjectName = async (projectId: string, name: string) => {
+  const response = await api.put(`/project/rename/${projectId}`, { name });
+  return response.data;
+};
+
+export const incrementFormViews = async (uniqueUrl: string) => {
+  const response = await api.post(`/form/views/${uniqueUrl}`);
+  return response.data;
+};
+
+// Project Analytics Types
+interface ProjectAnalyticsData {
+  project: {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  analytics: {
+    totalViews: number;
+    totalForms: number;
+    publishedForms: number;
+    draftForms: number;
+    averageViewsPerForm: number;
+  };
+  forms: Array<{
+    id: string;
+    title: string;
+    views: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    uniqueUrl: string;
+  }>;
+  topForms: Array<{
+    id: string;
+    title: string;
+    views: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    uniqueUrl: string;
+  }>;
+  dailyViews: Array<{
+    date: string;
+    dayName: string;
+    views: number;
+  }>;
+}
+
+interface ProjectAnalyticsResponse {
+  success: boolean;
+  message: string;
+  data: ProjectAnalyticsData;
+}
+
+export const getProjectAnalytics = async (projectId: string): Promise<ProjectAnalyticsResponse> => {
+  const response = await api.get<ProjectAnalyticsResponse>(`/project/analytics/${projectId}`);
+  return response.data;
+};
+
 export const createCondition = async (payload: Condition) => {
   const response = await api.post(`/condition`, payload);
   return response.data;

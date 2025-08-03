@@ -1,97 +1,126 @@
 import React, { useState, useEffect } from "react";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { useParams } from "react-router-dom";
 import Sidebar from "../../components/home/Sidebar";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import "../../styles/home/Dashboard.css";
-// import { useNavigate } from "react-router-dom";
-import { getAllProjectsSummary } from "../../api/formBuilderApi";
+import { getProjectAnalytics } from "../../api/formBuilderApi";
 import "./projectanalysis.css";
+interface ProjectAnalyticsData {
+  project: {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  analytics: {
+    totalViews: number;
+    totalForms: number;
+    publishedForms: number;
+    draftForms: number;
+    averageViewsPerForm: number;
+  };
+  forms: Array<{
+    id: string;
+    title: string;
+    views: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    uniqueUrl: string;
+  }>;
+  topForms: Array<{
+    id: string;
+    title: string;
+    views: number;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    uniqueUrl: string;
+  }>;
+  dailyViews: Array<{
+    date: string;
+    dayName: string;
+    views: number;
+  }>;
+}
+
 const Projectanalysis: React.FC = () => {
+  const { id: projectId } = useParams<{ id: string }>();
   const [activeItem, setActiveItem] = useState("home");
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [projectData, setProjectData] = useState<ProjectAnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState("This year");
 
-  // Dummy analytics data
-  const [analyticsData, setAnalyticsData] = useState({
-    totalViews: 7265,
-    viewsGrowth: 11.01,
-    averageViews: 7265,
-    averageGrowth: 11.01,
-    chartData: [
-      { name: "-7 Day", value: 180, fullName: "7 days ago" },
-      { name: "-6 Day", value: 190, fullName: "6 days ago" },
-      { name: "-5 Day", value: 170, fullName: "5 days ago" },
-      { name: "-4 Day", value: 220, fullName: "4 days ago" },
-      { name: "-3 Day", value: 250, fullName: "3 days ago" },
-      { name: "-2 Day", value: 240, fullName: "2 days ago" },
-      { name: "-1 Day", value: 260, fullName: "Yesterday" },
-      { name: "0 Day", value: 280, fullName: "Today" },
-    ],
-  });
-
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjectAnalytics = async () => {
+      if (!projectId) {
+        setError("Project ID is required");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
+      setError(null);
       try {
-        const response = (await getAllProjectsSummary()) as {
-          data: ProjectSummary[];
-        };
-        setProjects(response.data || []);
+        const response = await getProjectAnalytics(projectId);
+        if (response.success) {
+          setProjectData(response.data);
+        } else {
+          setError(response.message || "Failed to fetch project analytics");
+        }
       } catch (error) {
-        console.error("Failed to fetch projects summary:", error);
+        console.error("Failed to fetch project analytics:", error);
+        setError("Failed to fetch project analytics");
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
-  }, []);
-
-  interface ProjectSummary {
-    id: string;
-    name: string;
-    type?: string;
-    status?: string;
-    forms?: { id: string; name: string }[];
-    isShared: boolean;
-  }
+    fetchProjectAnalytics();
+  }, [projectId]);
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
   };
 
-  const handleViewAnalysis = (projectId: string) => {
-    console.log("View analysis for project:", projectId);
+  const handleViewAnalysis = (formId: string) => {
+    console.log("View analysis for form:", formId);
   };
 
-  const handleMenuClick = (projectId: string) => {
-    console.log("Menu clicked for project:", projectId);
+  const handleMenuClick = (formId: string) => {
+    console.log("Menu clicked for form:", formId);
   };
 
   const handleTimeframeChange = (timeframe: string) => {
     setSelectedTimeframe(timeframe);
-    // Update analytics data based on timeframe
-    if (timeframe === "Last year") {
-      setAnalyticsData({
-        ...analyticsData,
-        totalViews: 6420,
-        viewsGrowth: 8.5,
-        averageViews: 6420,
-        averageGrowth: 8.5,
-      });
-    } else {
-      setAnalyticsData({
-        ...analyticsData,
-        totalViews: 7265,
-        viewsGrowth: 11.01,
-        averageViews: 7265,
-        averageGrowth: 11.01,
-      });
-    }
+    // Note: In a real implementation, you would refetch data based on timeframe
+    // For now, we just update the selected timeframe
   };
 
   const formatNumber = (num: number) => {
     return num.toLocaleString();
+  };
+
+  // Generate chart data using real daily view data from backend
+  const generateChartData = () => {
+    if (!projectData || !projectData.dailyViews) {
+      return [];
+    }
+
+    // Use real daily view data from backend
+    const chartData = projectData.dailyViews.map((dayData: { date: string; dayName: string; views: number }) => ({
+      name: dayData.dayName,
+      value: dayData.views,
+      fullName: new Date(dayData.date).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      date: dayData.date
+    }));
+    
+    return chartData;
   };
 
   // Recharts Line Chart component
@@ -120,16 +149,21 @@ const Projectanalysis: React.FC = () => {
               tick={{ fontSize: 12, fill: "#9ca3af" }}
               interval={0}
             />
-            <YAxis hide />
+            <YAxis 
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 12, fill: "#9ca3af" }}
+              tickFormatter={(value) => formatNumber(value)}
+            />
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#9ca3af"
+              stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
-              activeDot={false}
+              activeDot={{ r: 4, fill: "#3b82f6" }}
               style={{
-                filter: "none",
+                filter: "drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))",
               }}
             />
           </LineChart>
@@ -138,13 +172,55 @@ const Projectanalysis: React.FC = () => {
     );
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="dashboard">
+        <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
+        <main className="main-content">
+          <div className="loading-container">
+            <div>Loading project analytics...</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="dashboard">
+        <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
+        <main className="main-content">
+          <div className="error-container">
+            <div>Error: {error}</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // No project data
+  if (!projectData) {
+    return (
+      <div className="dashboard">
+        <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
+        <main className="main-content">
+          <div className="error-container">
+            <div>No project data available</div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard">
       <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
       <main className="main-content">
         <header className="header-container">
           <div className="page-header">
-            <h1 className="page-title">Welcome to CANOVA</h1>
+            <h1 className="page-title">{projectData.project.name} - Analytics</h1>
           </div>
         </header>
         <div className="content-wrapper">
@@ -153,9 +229,7 @@ const Projectanalysis: React.FC = () => {
             <div className="analytics-header">
               <div className="analytics-controls">
                 <div className="chart-tabs">
-                  <span className="tab active">Average Response Chart</span>
-                  <span className="tab">Total Page</span>
-                  <span className="tab">Operating Status</span>
+                  
                 </div>
                 <div className="timeframe-selector">
                   <button
@@ -183,61 +257,72 @@ const Projectanalysis: React.FC = () => {
                 {/* Total Views Card */}
                 <div className="analytics-card">
                   <div className="card-header">
-                    <span className="card-label">Views</span>
+                    <span className="card-label">Total Views</span>
                   </div>
                   <div className="card-value">
-                    {formatNumber(analyticsData.totalViews)}
+                    {formatNumber(projectData.analytics.totalViews)}
                   </div>
                   <div className="card-growth positive">
-                    +{analyticsData.viewsGrowth}% ↗
+                    All Forms
                   </div>
                 </div>
+
+                
 
                 {/* Average Views Card */}
                 <div className="analytics-card">
                   <div className="card-header">
-                    <span className="card-label">Views</span>
+                    <span className="card-label">Avg Views/Form</span>
                   </div>
                   <div className="card-value">
-                    {formatNumber(analyticsData.averageViews)}
+                    {formatNumber(projectData.analytics.averageViewsPerForm)}
                   </div>
                   <div className="card-growth positive">
-                    +{analyticsData.averageGrowth}% ↗
+                    Per Form
                   </div>
                 </div>
+
+             
               </div>
 
-              {/* Chart */}
+              {/* Chart Section */}
               <div className="chart-section">
-                <AnalyticsChart data={analyticsData.chartData} />
+
+                <AnalyticsChart data={generateChartData()} />
               </div>
             </div>
           </section>
 
-          {/* Projects from API */}
+          {/* Forms List */}
           <section className="projects-section">
-            {loading ? (
-              <div>Loading...</div>
+            <h2>Forms in this Project</h2>
+            {projectData.forms.length === 0 ? (
+              <div className="no-forms">
+                <p>No forms found in this project.</p>
+              </div>
             ) : (
               <div className="projects-grid">
-                {projects
-                  .filter((project) => project.type === "form")
-                  .map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={{
-                        id: project.id,
-                        name: project.name,
-                        status: project.status,
-                        type: (project.type as "form" | "project") || "project",
-                      }}
-                      onViewAnalysis={handleViewAnalysis}
-                      onMenuClick={handleMenuClick}
-                    />
-                  ))}
+                {projectData.forms.map((form) => (
+                  <ProjectCard
+                    key={form.id}
+                    project={{
+                      id: form.id,
+                      name: form.title,
+                      status: form.status,
+                      type: "form" as const,
+                    
+                    }}
+                    onViewAnalysis={handleViewAnalysis}
+                    onMenuClick={handleMenuClick}
+                    setProjectName={() => {}}
+                    setProjectId={() => {}}
+                  />
+                ))}
               </div>
             )}
           </section>
+
+      
         </div>
       </main>
     </div>

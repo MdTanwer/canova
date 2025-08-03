@@ -3,19 +3,24 @@ import "../../styles/ProjectCard/ProjectCard.css";
 import type { Project } from "../../types/types";
 import form from "../../assets/fe_editbigsvg.svg";
 import file from "../../assets/filebig.svg";
-import { deleteById } from "../../api/formBuilderApi";
+import { deleteById, getPages, getFormShareUrl } from "../../api/formBuilderApi";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import ShareLink from "../shareLink/shareLink";
 
 interface ProjectCardProps {
   project: Project;
   onViewAnalysis: (projectId: string) => void;
   onMenuClick: (projectId: string) => void;
+  setProjectName: (value: boolean) => void;
+  setProjectId: (projectId: string) => void;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({
   project,
   onViewAnalysis,
+  setProjectName,
+  setProjectId,
 }) => {
   const getIcon = () => {
     if (project.type === "form") {
@@ -24,6 +29,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     return <img src={file} alt="file" />;
   };
   const [tooltip, setTooltip] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string>("");
 
   const handleDelete = async () => {
     try {
@@ -41,10 +48,39 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       toast.error("Failed to delete. Please try again.");
     }
   };
+
+  const handleShare = async () => {
+    try {
+      setTooltip(false); // Close tooltip when share is clicked
+      const response = await getFormShareUrl(project.id) as any;
+      const url = response.data?.shareableLink || response.shareableLink;
+      setShareUrl(url);
+      setShareModalOpen(true);
+    } catch (error) {
+      console.error("Failed to get share URL:", error);
+      toast.error("Failed to get share link. Please try again.");
+    }
+  };
   const navigate = useNavigate();
-  const handleClick = () => {
+  const handleClick = async () => {
     if (project.type === "form") {
-      navigate(`/formanalysis/${project.id}`);
+      try {
+        // Get the pages for this form to get the first page ID
+        const pagesResponse = await getPages(project.id) as any;
+        const pages = pagesResponse.data || pagesResponse.pages || pagesResponse;
+        
+        if (pages && pages.length > 0) {
+          // Navigate to form builder with the first page
+          navigate(`/form-builder/${project.id}/${pages[0]._id || pages[0].id}`);
+        } else {
+          // Fallback: navigate to form analysis if no pages found
+          navigate(`/formanalysis/${project.id}`);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pages for form:", error);
+        // Fallback: navigate to form analysis on error
+        navigate(`/formanalysis/${project.id}`);
+      }
     } else {
       navigate(`/project/${project.id}`);
     }
@@ -52,7 +88,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   return (
     <div
-      onClick={handleClick}
       className="project-card"
       style={{ paddingBottom: "5px", position: "relative" }}
     >
@@ -61,6 +96,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         {project.status === "draft" ? " (draft)" : ""}
       </h3>
       <div
+        onClick={handleClick}
         className="icon-container"
         style={{
           background: project.type === "project" ? "#69b5f8" : "",
@@ -105,21 +141,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             zIndex: "5000", // ✅ shadow
           }}
         >
-          <div
-            style={{
-              color: "#1F2937",
-              fontFamily: "inter",
-              fontSize: "20px",
-              cursor: "pointer",
-              transition: "color 0.3s ease",
-            }}
-            onClick={() => {
-              // setResponderType("Anyone");
-              // setLinkModel(false);
-            }}
-          >
-            Share
-          </div>
+          {project.type === "form" && project.status === "published" && (
+            <div
+              style={{
+                color: "#1F2937",
+                fontFamily: "inter",
+                fontSize: "20px",
+                cursor: "pointer",
+                transition: "color 0.3s ease",
+              }}
+              onClick={handleShare}
+            >
+              Share
+            </div>
+          )}
 
           <div
             style={{
@@ -130,28 +165,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               cursor: "pointer",
             }}
             onClick={() => {
-              // setLinkModel(false);
-              // setResponderType("Restricted");
+              setProjectName(true);
+              setProjectId(project.id);
+              setTooltip(false); // Close tooltip when rename is clicked
             }}
           >
             {" "}
             Rename
-          </div>
-          <div
-            style={{
-              paddingTop: "5px",
-              color: "#1F2937",
-              fontFamily: "inter",
-              fontSize: "20px",
-              cursor: "pointer",
-            }}
-            // onClick={() => {
-            //   setLinkModel(false);
-            //   setResponderType("Restricted");
-            // }}
-          >
-            {" "}
-            Copy
           </div>
 
           <div
@@ -169,6 +189,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           </div>
         </div>
       )}
+      
+      {/* Share Link Modal */}
+      <ShareLink
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        formId={project.id}
+        shareUrl={shareUrl}
+      />
     </div>
   );
 };

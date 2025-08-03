@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
-import { Project, Form, Page } from "../models/Index";
+import { Project, Form, Page, DailyViews } from "../models/Index";
 
 export const createProjectWithForm = async (
   req: Request,
@@ -83,17 +83,19 @@ export const renameProject = async (
   next: NextFunction
 ) => {
   try {
-    const { projectId, newName } = req.body;
-    if (!projectId || !newName) {
-      return next(createError("projectId and newName are required", 400));
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    if (!id || !name) {
+      return next(createError("Project id and name are required", 400));
     }
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(id);
     if (!project) {
       return next(createError("Project not found", 404));
     }
 
-    project.name = newName;
+    project.name = name;
     await project.save();
 
     res.status(200).json({
@@ -103,6 +105,134 @@ export const renameProject = async (
     });
   } catch (error) {
     next(createError("Failed to rename project", 500));
+  }
+};
+
+export const getProjectAnalytics = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { projectId } = req.params;
+    
+    if (!projectId) {
+      return next(createError("Project ID is required", 400));
+    }
+
+    // Find the project
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return next(createError("Project not found", 404));
+    }
+
+    // Get all forms for this project with their views
+    const forms = await Form.find(
+      { projectId },
+      { 
+        _id: 1, 
+        title: 1, 
+        views: 1, 
+        status: 1, 
+        createdAt: 1, 
+        updatedAt: 1,
+        uniqueUrl: 1
+      }
+    ).sort({ createdAt: -1 });
+
+    // Calculate analytics
+    const totalViews = forms.reduce((sum, form) => sum + (form.views || 0), 0);
+    const totalForms = forms.length;
+    const publishedForms = forms.filter(form => form.status === 'published').length;
+    const draftForms = forms.filter(form => form.status === 'draft').length;
+    const averageViewsPerForm = totalForms > 0 ? Math.round(totalViews / totalForms) : 0;
+
+    // Transform forms data
+    const formsData = forms.map(form => ({
+      id: form._id,
+      title: form.title,
+      views: form.views || 0,
+      status: form.status,
+      createdAt: form.createdAt,
+      updatedAt: form.updatedAt,
+      uniqueUrl: form.uniqueUrl
+    }));
+
+    // Get top performing forms (top 5 by views)
+    const topForms = [...formsData]
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5);
+
+    // Get daily view data for the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+
+    const formIds = forms.map(form => form._id);
+    
+    // Aggregate daily views for all forms in the project
+    const dailyViews = await DailyViews.aggregate([
+      {
+        $match: {
+          formId: { $in: formIds },
+          date: { $gte: sevenDaysAgo }
+        }
+      },
+      {
+        $group: {
+          _id: "$date",
+          totalViews: { $sum: "$views" }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+
+    // Create array of last 7 days with view data
+    const dailyViewsData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setUTCHours(0, 0, 0, 0);
+      
+      const dayData = dailyViews.find((dv: any) => 
+        new Date(dv._id).toDateString() === date.toDateString()
+      );
+      
+      dailyViewsData.push({
+        date: date.toISOString().split('T')[0],
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        views: dayData ? dayData.totalViews : 0
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Project analytics retrieved successfully",
+      data: {
+        project: {
+          id: project._id,
+          name: project.name,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt
+        },
+        analytics: {
+          totalViews,
+          totalForms,
+          publishedForms,
+          draftForms,
+          averageViewsPerForm
+        },
+        forms: formsData,
+        topForms,
+        dailyViews: dailyViewsData
+      }
+    });
+
+  } catch (error) {
+    console.error('Get project analytics error:', error);
+    next(createError("Failed to retrieve project analytics", 500));
   }
 };
 
