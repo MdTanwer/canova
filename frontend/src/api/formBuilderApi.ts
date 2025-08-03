@@ -34,7 +34,7 @@ export const createNextPages = async (formId: string) => {
 };
 
 export const getFormNmae = async (formId: string) => {
-  const response = await api.get(`/form/${formId}`);
+  const response = await api.get(`/form/name/${formId}`);
   return response.data;
 };
 

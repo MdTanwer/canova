@@ -19,7 +19,7 @@ formRouter.post("/", createRandomForm);
 
 formRouter.get("/pages/:formId", getPagesByFormId);
 formRouter.post("/add-page/:formId", createNextPage);
-formRouter.get("/:formId", getFormNameById);
+formRouter.get("/name/:formId", getFormNameById);
 
 formRouter.get("/access/:uniqueUrl", checkFormAccess, getFormByUniqueUrl);
 formRouter.post("/verify-browser-email/:uniqueUrl", verifyEmail);

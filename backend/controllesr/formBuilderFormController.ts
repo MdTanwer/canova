@@ -83,6 +83,7 @@ export const getFormNameById = async (
     res.status(200).json({
       success: true,
       formName: form.title,
+      backgroundColor: form.backgroundColor,
     });
   } catch (error) {
     next(createError("Failed to fetch form name", 500));

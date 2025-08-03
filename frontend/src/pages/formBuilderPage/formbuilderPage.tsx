@@ -41,7 +41,7 @@ const FormBuilderPage: React.FC = () => {
   const [referenceUrl, setReferenceUrl] = useState("");
 
   const [openuploadMedia, setOpenuploadMedia] = useState(false);
-  console.log(referenceUrl);
+
   const [currentUploadingQuestionId, setCurrentUploadingQuestionId] = useState<
     string | null
   >(null);
@@ -74,9 +74,14 @@ const FormBuilderPage: React.FC = () => {
     const fetchFormTitle = async () => {
       if (!formId) return;
       try {
-        const result = (await getFormNmae(formId)) as { formName: string };
+        const result = (await getFormNmae(formId)) as {
+          formName: string;
+          backgroundColor: string;
+        };
+        console.log("result", result);
         if (result && result.formName) {
           setFormTitle(result.formName);
+          setBackgroundColor(result.backgroundColor);
         }
       } catch (error) {
         console.error("Failed to fetch form name:", error);
@@ -196,6 +201,7 @@ const FormBuilderPage: React.FC = () => {
   };
 
   const handleAddSections = () => {
+    setSectionColor("#ffffff");
     console.log("Add Sections clicked");
   };
 
@@ -576,8 +582,6 @@ const FormBuilderPage: React.FC = () => {
     index: number;
   }) => {
     const questionNumber = `Q${index + 1}`;
-
-    console.log("question", question);
 
     // Function to handle upload for specific question
     const handleUploadForQuestion = (questionId: string) => {
@@ -1538,6 +1542,7 @@ const FormBuilderPage: React.FC = () => {
       <PreviewModal
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}
+        backgroundColor={backgroundColor}
         questions={questions}
         formTitle={formTitle}
         currentPageTitle={
@@ -1599,6 +1604,7 @@ interface PreviewModalProps {
   questions: Question[];
   formTitle: string;
   currentPageTitle: string;
+  backgroundColor: string;
 }
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -1607,6 +1613,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
   questions,
   formTitle,
   currentPageTitle,
+  backgroundColor,
 }) => {
   const [previewAnswers, setPreviewAnswers] = useState<Record<string, any>>({});
 
@@ -1630,9 +1637,109 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
     const answer = previewAnswers[question.id!];
 
     return (
-      <div className="preview-question">
-        <div className="preview-question-header">
-          <span className="preview-question-number">{questionNumber}</span>
+      <div
+        className="preview-question"
+        style={{ backgroundColor: "transparent", border: "none" }}
+      >
+        {question.referenceUrl && (
+          <div
+            className="reference-media-container"
+            style={{
+              marginBottom: "16px",
+              padding: "12px",
+              border: "2px dashed #e0e0e0",
+              borderRadius: "8px",
+              backgroundColor: "#f9f9f9",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "8px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#666",
+                }}
+              >
+                📎 Reference Media
+              </span>
+              <button
+                // onClick={() => updateQuestion(question.id!, "referenceUrl", "")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#ff4444",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+                title="Remove reference"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Display based on media type */}
+            {question.referenceUrl.includes("image") ||
+            question.referenceUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+              <img
+                src={question.referenceUrl}
+                alt="Reference"
+                style={{
+                  maxWidth: "200px",
+                  maxHeight: "150px",
+                  borderRadius: "4px",
+                  objectFit: "cover",
+                }}
+              />
+            ) : question.referenceUrl.includes("video") ||
+              question.referenceUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+              <video
+                controls
+                style={{
+                  maxWidth: "200px",
+                  maxHeight: "150px",
+                  borderRadius: "4px",
+                }}
+              >
+                <source src={question.referenceUrl} />
+              </video>
+            ) : (
+              <div
+                style={{
+                  padding: "8px",
+                  backgroundColor: "#e9f1f7",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                }}
+              >
+                🔗{" "}
+                <a
+                  href={question.referenceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {question.referenceUrl}
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+        <div
+          className="preview-question-header"
+          style={{ display: "flex", alignItems: "center", gap: 10 }}
+        >
+          <span
+            className="preview-question-number"
+            style={{ fontSize: "20px", fontFamily: "Inter", fontWeight: 500 }}
+          >
+            {questionNumber}
+          </span>
           <h3 className="preview-question-title">
             {question.question}
             {question.required && (
@@ -1640,7 +1747,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             )}
           </h3>
         </div>
-
         {/* Short Answer */}
         {question.type === "short" && (
           <input
@@ -1652,7 +1758,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             maxLength={question.maxLength}
           />
         )}
-
         {/* Long Answer */}
         {question.type === "long" && (
           <textarea
@@ -1663,7 +1768,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             rows={4}
           />
         )}
-
         {/* Multiple Choice */}
         {question.type === "multiple-choice" && (
           <div className="preview-option-group">
@@ -1682,7 +1786,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             ))}
           </div>
         )}
-
         {/* Checkbox */}
         {question.type === "checkbox" && (
           <div className="preview-option-group">
@@ -1712,7 +1815,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             ))}
           </div>
         )}
-
         {/* Rating */}
         {question.type === "rating" && (
           <div className="preview-rating-container">
@@ -1733,7 +1835,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             ))}
           </div>
         )}
-
         {/* Date */}
         {question.type === "date" && (
           <input
@@ -1743,7 +1844,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             onChange={(e) => handleAnswerChange(question.id!, e.target.value)}
           />
         )}
-
         {/* Linear Scale */}
         {question.type === "LinearScale" && (
           <div className="preview-scale-container">
@@ -1770,7 +1870,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             </div>
           </div>
         )}
-
         {/* Upload */}
         {question.type === "upload" && (
           <div className="preview-upload-container">
@@ -1796,11 +1895,14 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
 
   return (
     <div className="preview-modal-overlay">
-      <div className="preview-modal-container">
+      <div
+        className="preview-modal-container"
+        style={{ backgroundColor: backgroundColor }}
+      >
         {/* Modal Header */}
         <div className="preview-modal-header">
           <div>
-            <h2 className="preview-modal-title">📋 Form Preview</h2>
+            <h2 className="preview-modal-title">Form Preview</h2>
             <p className="preview-modal-subtitle">
               {formTitle} - {currentPageTitle}
             </p>
@@ -1820,7 +1922,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
           ) : (
             <>
               <div className="preview-form-header">
-                <h1 className="preview-form-title">{formTitle}</h1>
                 <h2 className="preview-page-title">{currentPageTitle}</h2>
               </div>
 
@@ -1831,15 +1932,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                   index={index}
                 />
               ))}
-
-              <div className="preview-navigation">
-                <button className="preview-nav-button primary">
-                  Next Page
-                </button>
-                <button className="preview-nav-button secondary">
-                  Previous
-                </button>
-              </div>
             </>
           )}
         </div>
