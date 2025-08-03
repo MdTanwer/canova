@@ -8,6 +8,7 @@ import {
   getPages,
   createNextPages,
   getFormNmae,
+  createCondition,
   // createCondition,
 } from "../../api/formBuilderApi";
 import {
@@ -20,6 +21,7 @@ import Uploadmedia from "../../components/uploadmedia/uploadmedia";
 
 import AddDes from "../../components/addDescriptionForm/addDes";
 import Addcolorform from "../../components/addcolorform/addcolorform";
+import { toast } from "react-toastify";
 
 const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("");
@@ -35,6 +37,7 @@ const FormBuilderPage: React.FC = () => {
   const [selectedConditionOptions, setSelectedConditionOptions] = useState<{
     [questionId: string]: number;
   }>({});
+
   const [formbColor, setFormbColor] = useState(false);
   const [descriptionForm, setDescriptionForm] = useState(false);
 
@@ -784,7 +787,11 @@ const FormBuilderPage: React.FC = () => {
                   <div
                     key={`${question.id}-option-${idx}`}
                     className="option-row"
-                    style={{ paddingBottom: "10px" }}
+                    style={{
+                      paddingBottom: "10px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
                   >
                     <div className="option-row-input">
                       <input
@@ -823,7 +830,8 @@ const FormBuilderPage: React.FC = () => {
                       <input
                         type="radio"
                         name={`condition-q${question.id}`}
-                        className="radio-input"
+                        style={{}}
+                        className="radio-radio-input"
                         checked={selectedConditionOptions[question.id!] === idx}
                         onChange={() => {
                           console.log("Selected condition:", {
@@ -914,19 +922,6 @@ const FormBuilderPage: React.FC = () => {
                       style={{ border: "none" }}
                     />
                     {/* ✅ Visual indicator for correct answers */}
-                    {question.correctAnswers?.includes(idx) && (
-                      <span
-                        className="correct-indicator"
-                        style={{
-                          marginLeft: "8px",
-                          color: "#4CAF50",
-                          fontWeight: "bold",
-                          fontSize: "14px",
-                        }}
-                      >
-                        ✓ Correct
-                      </span>
-                    )}
                   </div>
                 ))}
                 <button
@@ -1457,6 +1452,18 @@ const FormBuilderPage: React.FC = () => {
     console.log("dfkjkhd");
   };
 
+  const handleSave = async () => {
+    try {
+      await savePageQuestionsToBackend(activeItem, questions);
+      toast.success("Saved successfully!");
+    } catch (error) {
+      console.error("Failed to save questions before page switch:", error);
+
+      toast.error("Failed to save!");
+      // Optionally show user a warning but don't block page switch
+    }
+  };
+
   return (
     <div className="form-container">
       <Sidebar
@@ -1468,7 +1475,11 @@ const FormBuilderPage: React.FC = () => {
       />
       <main className="form-main-content">
         <div className="form-content-wrapper">
-          <FormHeader title={formTitle} onPreview={handlePreview} />
+          <FormHeader
+            title={formTitle}
+            onPreview={handlePreview}
+            onSave={handleSave}
+          />
 
           <div className="form-builder-content">
             <div
@@ -1960,17 +1971,16 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
   setSelectedConditionOptions,
   setCondition,
 }) => {
-  const [sourcePage, setSourcePage] = useState<string>(pages[0]?._id || "");
   const [trueDest, setTrueDest] = useState<string>(pages[0]?._id || "");
   const [falseDest, setFalseDest] = useState<string>(pages[0]?._id || "");
-
+  const { pageId } = useParams<{ id: string; pageId: string }>();
   const handleContinue = async () => {
-    if (!formId) return;
+    if (!formId || !pageId) return;
 
     const selectedOptions = selectedConditionOptions;
 
     if (Object.keys(selectedOptions).length === 0) {
-      alert("No condition options selected");
+      toast.error("No condition options selected");
       return;
     }
 
@@ -1983,7 +1993,9 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
     );
 
     if (invalidQuestions.length > 0) {
-      alert("Please save the form first. Some questions don't have valid IDs.");
+      toast.error(
+        "Please save the form first. Some questions don't have valid IDs."
+      );
       return;
     }
 
@@ -2008,31 +2020,28 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
 
     const payload = {
       formId,
-      pageId: sourcePage,
+      pageId,
       questionIds,
       rules,
-      sourcePage,
+      sourcePage: pageId,
       trueDestinationPage: trueDest,
       falseDestinationPage: falseDest,
-      logicOperator: "AND",
+      logicOperator: "AND" as const,
     };
 
     console.log("🚀 Sending payload:", JSON.stringify(payload, null, 2));
 
     try {
-      // const result = await createCondition(payload);
-      // console.log("✅ Condition created successfully:", result);
+      const result = await createCondition(payload);
+      toast.success("Condition created successfully");
+      console.log("✅ Condition created successfully:", result);
       setConditionModel(false);
       setCondition(false);
       setSelectedConditionOptions({});
     } catch (error: any) {
+      toast.error(error.message);
       console.error("❌ Failed to create condition:", error);
       console.error("Error response:", error.response?.data);
-      alert(
-        `Failed to create condition: ${
-          error.response?.data?.message || error.message
-        }`
-      );
     }
   };
 
@@ -2046,61 +2055,73 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
           &times;
         </button>
 
-        <h3>Create Condition</h3>
-
-        <div
-          className="selected-conditions"
+        <h3
           style={{
-            marginBottom: "20px",
-            padding: "10px",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "5px",
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 500, // "Medium"
+            fontSize: "16px",
+            lineHeight: "150%",
+
+            color: "#000000",
           }}
         >
-          <h4>Selected Options:</h4>
-          {Object.entries(selectedConditionOptions).map(
-            ([questionId, optionIndex]) => {
-              const question = questions.find((q) => q.id === questionId);
-              const optionText = question?.options?.[optionIndex];
-              return (
-                <div
-                  key={questionId}
-                  className="condition-item"
-                  style={{ marginBottom: "10px" }}
-                >
-                  <strong>Q:</strong> {question?.question} <br />
-                  <strong>Selected:</strong> {optionText}
-                </div>
-              );
-            }
-          )}
-        </div>
+          Select Page
+        </h3>
+
+        <p
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontWeight: 500, // "Medium"
+            fontSize: "14px",
+            lineHeight: "150%",
+
+            color: "#000000",
+            padding: "10px",
+          }}
+        >
+          If the conditions are all met, it lead the user to the page
+          you’veSelected here{" "}
+        </p>
 
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
-            Source Page
-          </label>
-          <select
-            value={sourcePage}
-            onChange={(e) => setSourcePage(e.target.value)}
-            style={{ width: "100%", padding: "8px" }}
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontFamily: "Noto Sans, sans-serif",
+              fontWeight: 600, // SemiBold
+              fontSize: "12px",
+              lineHeight: "18px",
+              letterSpacing: "0em",
+              color: "#000000",
+            }}
           >
-            {pages.map((page) => (
-              <option key={page._id} value={page._id}>
-                {page.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
             If TRUE, go to
           </label>
+
           <select
             value={trueDest}
             onChange={(e) => setTrueDest(e.target.value)}
-            style={{ width: "100%", padding: "8px" }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              border: "2px solid #e1e5e9",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontFamily: "inherit",
+              backgroundColor: "#E7EEF5",
+              color: "#2d3748",
+              outline: "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+              appearance: "none",
+
+              backgroundPosition: "right 12px center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "16px",
+              paddingRight: "40px",
+            }}
           >
             {pages.map((page) => (
               <option key={page._id} value={page._id}>
@@ -2111,13 +2132,43 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
         </div>
 
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontFamily: "Noto Sans, sans-serif",
+              fontWeight: 600, // SemiBold
+              fontSize: "12px",
+              lineHeight: "18px",
+              letterSpacing: "0em",
+              color: "#000000",
+            }}
+          >
             If FALSE, go to
           </label>
           <select
             value={falseDest}
             onChange={(e) => setFalseDest(e.target.value)}
-            style={{ width: "100%", padding: "8px" }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              border: "2px solid #e1e5e9",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontFamily: "inherit",
+              backgroundColor: "#E7EEF5",
+              color: "#2d3748",
+              outline: "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+              appearance: "none",
+
+              backgroundPosition: "right 12px center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "16px",
+              paddingRight: "40px",
+            }}
           >
             {pages.map((page) => (
               <option key={page._id} value={page._id}>
@@ -2131,25 +2182,17 @@ const ConditionModel: React.FC<ConditionModalProps> = ({
           style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
         >
           <button
-            onClick={() => setConditionModel(false)}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#ccc",
-              border: "none",
-              borderRadius: "5px",
-            }}
-          >
-            Cancel
-          </button>
-          <button
             className="continue-button"
             onClick={handleContinue}
             disabled={Object.keys(selectedConditionOptions).length === 0}
             style={{
               padding: "10px 20px",
-              backgroundColor: "#007bff",
+              backgroundColor: "#000000",
               color: "white",
               border: "none",
+              fontFamily: "Noto Sans, sans-serif",
+              fontWeight: 500, // SemiBold
+              fontSize: "22px",
               borderRadius: "5px",
               opacity:
                 Object.keys(selectedConditionOptions).length === 0 ? 0.5 : 1,

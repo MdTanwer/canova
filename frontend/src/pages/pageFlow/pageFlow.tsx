@@ -110,21 +110,18 @@ const PageFlow = () => {
     return (
       <div className="flow-chart">
         {/* Current Page */}
-        <div className="flow-node current-page">
-          <div className="page-box">{currentPageName}</div>
-        </div>
+        {/* <div className="flow-node current-page"> */}
+        <div className="page-box">{currentPageName}</div>
+        {/* </div> */}
 
         {/* Condition Diamond */}
         <div className="condition-container">
           <div className="flow-line vertical"></div>
-          <div className="condition-diamond">
-            <div className="diamond-content">Page 01</div>
-          </div>
 
           {/* True/False Labels */}
           <div className="condition-labels">
             <span className="true-label">True</span>
-            <span className="false-label">False</span>
+            <span className="false-label"></span>
           </div>
         </div>
 
@@ -275,13 +272,6 @@ const PublishModal: React.FC<PublishModalProps> = ({
   const [emailModel, setEmailModel] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  console.log(
-    error,
-    isPublishing,
-    selectedEmailIndex,
-    showEmailDropdown,
-    showManageDropdown
-  );
 
   const addEmail = () => {
     setEmails([...emails, ""]);
@@ -301,7 +291,6 @@ const PublishModal: React.FC<PublishModalProps> = ({
       setSelectedEmailIndex(null);
     }
   };
-  console.log(removeEmail);
 
   const handleEmailEditClick = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
