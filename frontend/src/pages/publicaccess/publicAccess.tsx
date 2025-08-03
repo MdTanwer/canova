@@ -32,7 +32,7 @@ const FormAccess = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3000/api/form/access/${uniqueUrl}`
+        `https://backend-latest-hudf.onrender.com/api/form/access/${uniqueUrl}`
       );
       const data = await response.json();
 
@@ -42,7 +42,7 @@ const FormAccess = () => {
         if (data.form.isPublic || !data.form.requiresEmail) {
           setHasAccess(true);
         }
-        
+
         // Increment form views when form is successfully accessed
         await incrementViews();
       } else {
@@ -88,7 +88,7 @@ const FormAccess = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/form/verify-browser-email/${uniqueUrl}`,
+        `https://backend-latest-hudf.onrender.com/api/form/verify-browser-email/${uniqueUrl}`,
         {
           method: "POST",
           headers: {

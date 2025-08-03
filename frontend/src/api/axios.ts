@@ -5,7 +5,7 @@ const baseURL =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
     import.meta.env.VITE_API_BASE_URL) ||
-  "http://localhost:3000/api";
+  "https://backend-latest-hudf.onrender.com/api";
 
 const api = axios.create({
   baseURL,
