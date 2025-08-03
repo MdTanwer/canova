@@ -167,7 +167,7 @@ export const formPublish = async (
     const uniqueUrl = uuidv4();
 
     // Generate shareable link
-    const shareableLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${uniqueUrl}`;
+    const shareableLink = `${process.env.FRONTEND_URL || "https://canova-uhye.vercel.app"}/public/${uniqueUrl}`;
 
     // Prepare update data
     const updateData: any = {
@@ -671,7 +671,7 @@ export const attemptQuestion = async (req: Request, res: Response) => {
 export const incrementFormViews = async (req: Request, res: Response) => {
   try {
     const { uniqueUrl } = req.params;
-    
+
     if (!uniqueUrl) {
       return res.status(400).json({
         success: false,
@@ -694,16 +694,16 @@ export const incrementFormViews = async (req: Request, res: Response) => {
 
     // Update or create daily view record
     await DailyViews.findOneAndUpdate(
-      { 
+      {
         formId: form._id,
-        date: today
+        date: today,
       },
-      { 
-        $inc: { views: 1 }
+      {
+        $inc: { views: 1 },
       },
-      { 
+      {
         upsert: true, // Create if doesn't exist
-        new: true 
+        new: true,
       }
     );
 

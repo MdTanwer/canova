@@ -86,10 +86,14 @@ export const loginUser = async (
     });
 
     // Set the token as a cookie (HttpOnly for security)
+    // Method 2: More explicit configuration
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // Only set secure cookies in production
-      maxAge: 3600 * 1000, // Token expiration (1 hour)
+      secure: isProduction, // false for localhost, true for production
+      sameSite: isProduction ? "strict" : "lax",
+      maxAge: 3600 * 1000,
     });
 
     // Send the user object without the password and a success message
@@ -134,12 +138,15 @@ export const sendOTP = async (
 
     // Generate JWT token for cookie
     const jwtToken = generateOTPToken(email);
+    // Method 2: More explicit configuration
+    const isProduction = process.env.NODE_ENV === "production";
 
     // Set cookie with JWT token
     res.cookie("otp_verification_token", jwtToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProduction, // false for localhost, true for production
+      sameSite: isProduction ? "strict" : "lax",
+
       maxAge: 10 * 60 * 1000, // 10 minutes
     });
 
@@ -231,14 +238,18 @@ export const verifyOTP = async (
     user.otpExpires = new Date();
     await user.save();
 
+    const isProduction = process.env.NODE_ENV === "production";
     // Update cookie to indicate verification success (for password setting)
     const verifiedToken = generateOTPToken(`${email}_verified`);
     res.cookie("password_setup_token", verifiedToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes to set password
+      secure: isProduction, // false for localhost, true for production
+      sameSite: isProduction ? "strict" : "lax",
+
+      maxAge: 10 * 60 * 1000, // 15 minutes to set password
     });
+
+    // Set cookie with JWT token
 
     // Clear OTP verification cookie
     res.clearCookie("otp_verification_token");
