@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
 import { Form, Page } from "../models/Index";
+import { AccessPermission } from "../models/formbuilderForm";
 
 export const createRandomForm = async (
   req: Request,
@@ -91,16 +92,26 @@ export const getFormNameById = async (
 };
 
 // POST: Publish form (requires authentication)
-export const formPublich = async (
+interface EmailAccessRequest {
+  email: string;
+  permissions: AccessPermission[];
+}
+
+export const formPublish = async (
   req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { formId } = req.params;
-    const { isPublic, allowedEmails } = req.body;
+    const {
+      isPublic,
+      allowedEmails, // For backward compatibility
+      emailAccess, // New granular access control
+      projectId,
+    } = req.body;
 
-    // Find form and check if user is owner
+    // Find form and check if it exists
     const form = await Form.findById(formId);
 
     if (!form) {
@@ -109,45 +120,163 @@ export const formPublich = async (
         .json({ success: false, message: "Form not found" });
     }
 
+    // Uncomment if you want to restrict to form owner only
     // if (form.createdBy.toString() !== req.user._id.toString()) {
     //   return res
     //     .status(403)
     //     .json({ success: false, message: "Only form owner can publish" });
     // }
 
-    // Update form with publish settings
+    // Generate shareable link
+    const shareableLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${form.uniqueUrl}`;
+
+    // Prepare update data
     const updateData: any = {
       status: "published",
       publishedAt: new Date(),
       isPublic: isPublic || false,
-      allowedEmails: [],
+      allowedEmails: [], // Clear old allowed emails
+      emailAccess: [], // Clear old email access
+      shareUrl: shareableLink, // Save shareable link to database
     };
 
-    // If not public, set allowed emails
-    if (!isPublic && allowedEmails && Array.isArray(allowedEmails)) {
+    // Add project ID if provided
+    if (projectId) {
+      updateData.projectId = projectId;
+    }
+
+    // Handle granular email access control
+    if (emailAccess && Array.isArray(emailAccess)) {
+      // Validate and process email access requests
+      const processedEmailAccess = [];
+
+      for (const accessItem of emailAccess) {
+        if (!accessItem.email || !accessItem.permissions) {
+          return res.status(400).json({
+            success: false,
+            message: "Each email access item must have email and permissions",
+          });
+        }
+
+        // Validate permissions
+        const validPermissions = accessItem.permissions.filter((perm: string) =>
+          Object.values(AccessPermission).includes(perm as AccessPermission)
+        );
+
+        if (validPermissions.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid permissions for email ${accessItem.email}. Valid permissions are: ${Object.values(AccessPermission).join(", ")}`,
+          });
+        }
+
+        processedEmailAccess.push({
+          email: accessItem.email.toLowerCase().trim(),
+          permissions: validPermissions,
+          grantedBy: req.user?._id || form.createdBy,
+          grantedAt: new Date(),
+        });
+      }
+
+      updateData.emailAccess = processedEmailAccess;
+    }
+    // Handle backward compatibility with allowedEmails
+    else if (!isPublic && allowedEmails && Array.isArray(allowedEmails)) {
+      // Convert allowedEmails to new emailAccess format (VIEW permission only)
+      updateData.emailAccess = allowedEmails.map((email: string) => ({
+        email: email.toLowerCase().trim(),
+        permissions: [AccessPermission.VIEW],
+        grantedBy: req.user?._id || form.createdBy,
+        grantedAt: new Date(),
+      }));
+
+      // Also set allowedEmails for backward compatibility
       updateData.allowedEmails = allowedEmails.map((email: string) =>
         email.toLowerCase().trim()
       );
     }
 
+    // Update form
     const updatedForm = await Form.findByIdAndUpdate(formId, updateData, {
       new: true,
     });
 
+    if (!updatedForm) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update form",
+      });
+    }
+
+    // Prepare response with access summary
+    const accessSummary = updatedForm.emailAccess.map((access) => ({
+      email: access.email,
+      permissions: access.permissions,
+      grantedAt: access.grantedAt,
+    }));
+
     res.json({
       success: true,
       message: "Form published successfully",
-      uniqueUrl: updatedForm?.uniqueUrl,
-      shareableLink: `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${updatedForm?.uniqueUrl}`,
-      isPublic: updatedForm?.isPublic,
-      allowedEmails: updatedForm?.allowedEmails,
+      data: {
+        formId: updatedForm._id,
+        uniqueUrl: updatedForm.uniqueUrl, // Now served from database
+        shareUrl: updatedForm.shareUrl, // Now served from database
+        isPublic: updatedForm.isPublic,
+        projectId: updatedForm.projectId,
+        status: updatedForm.status,
+        publishedAt: updatedForm.publishedAt,
+        accessControl: {
+          isPublic: updatedForm.isPublic,
+          emailAccess: accessSummary,
+          // Backward compatibility
+          allowedEmails: updatedForm.allowedEmails,
+        },
+      },
     });
   } catch (error) {
+    console.error("Form publish error:", error);
     next(error);
   }
 };
 // Backend API Routes
 
+
+export const getFormShareUrl = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { formId } = req.params;
+
+    // Find form by ID
+    const form = await Form.findById(formId);
+
+    if (!form) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Form not found" });
+    }
+
+    // Check if form is published
+    if (form.status !== "published") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Form is not published" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        shareableLink: form.shareUrl,
+      },
+    });
+  } catch (error) {
+    console.error("Get form share URL error:", error);
+    next(error);
+  }
+};
 // GET: Check form access and return form data
 export const getFormByUniqueUrl = async (req: Request, res: Response) => {
   try {

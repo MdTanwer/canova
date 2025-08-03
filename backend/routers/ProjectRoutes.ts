@@ -4,7 +4,9 @@ import {
   createProjectWithForm,
   getAllProjectsSummary,
   deleteById,
+  getAllProjects,
 } from "../controllesr/formBuilderProjectController";
+
 
 export const projectRouter = express.Router();
 
@@ -14,3 +16,5 @@ projectRouter.post("/", createProjectWithForm);
 projectRouter.get("/summary", getAllProjectsSummary);
 // DELETE /api/projects/:id - Delete project or form by id
 projectRouter.delete("/:id", deleteById);
+projectRouter.get("/", getAllProjects);
+

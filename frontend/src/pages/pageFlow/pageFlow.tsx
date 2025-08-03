@@ -1,21 +1,27 @@
+// Enhanced React Component
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type {
-  FormPublishSettings,
-  Page,
-  PageFlowData,
+import {
+  type FormPublishSettings,
+  type Page,
+  type PageFlowData,
+  type EmailAccess,
+  type Project,
+  AccessPermission,
 } from "../../types/types";
 import {
   getFormNmae,
   getPageFlow,
   getPages,
   publishForm,
+  getAllProjects,
 } from "../../api/formBuilderApi";
 import "../../styles/formBuilder/formbuilder.css";
 import Sidebar from "../../components/formbuilder/Sidebar";
 import "../../styles/formBuilder/pageFlow.css";
 import "../../styles/PageFlow/PageFlow.css";
 import ShareLink from "../../components/shareLink/shareLink";
+import { toast } from "react-toastify";
 
 const PageFlow = () => {
   const { id: formId } = useParams<{ id: string; pageId: string }>();
@@ -27,6 +33,7 @@ const PageFlow = () => {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [shareLink, setShareLink] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string>("");
 
   // Fetch pages
   useEffect(() => {
@@ -82,18 +89,18 @@ const PageFlow = () => {
   const handleItemClick = async (item: string) => {
     setActiveItem(item);
   };
+
   const handleNextClick = () => {
     setIsModalOpen(true);
   };
 
-  // Handle modal close
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
 
-  // Handle publish action
   const handlePublish = () => {
     setIsModalOpen(false);
+    setShareLink(true);
   };
 
   const renderFlowChart = () => {
@@ -109,25 +116,18 @@ const PageFlow = () => {
 
     return (
       <div className="flow-chart">
-        {/* Current Page */}
-        {/* <div className="flow-node current-page"> */}
         <div className="page-box">{currentPageName}</div>
-        {/* </div> */}
 
-        {/* Condition Diamond */}
         <div className="condition-container">
           <div className="flow-line vertical"></div>
 
-          {/* True/False Labels */}
           <div className="condition-labels">
             <span className="true-label">True</span>
-            <span className="false-label"></span>
+            <span className="false-label">False</span>
           </div>
         </div>
 
-        {/* Flow Branches */}
         <div className="flow-branches">
-          {/* True Branch */}
           <div className="flow-branch true-branch">
             <div className="branch-line"></div>
             {pageFlow.trueSequence && pageFlow.trueSequence.length > 1 && (
@@ -146,7 +146,6 @@ const PageFlow = () => {
             )}
           </div>
 
-          {/* False Branch */}
           <div className="flow-branch false-branch">
             <div className="branch-line"></div>
             {pageFlow.falseSequence && pageFlow.falseSequence.length > 1 && (
@@ -227,17 +226,20 @@ const PageFlow = () => {
           </div>
         </div>
       </div>
+
       <PublishModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onPublish={handlePublish}
-        setShareLink={setShareLink}
+        setShareUrl={setShareUrl}
       />
-      {shareLink && (
+
+      {shareUrl && shareLink && (
         <ShareLink
           isOpen={shareLink}
-          onClose={handleModalClose}
+          onClose={() => setShareLink(false)}
           onPublish={handlePublish}
+          shareUrl={shareUrl}
         />
       )}
     </>
@@ -246,78 +248,116 @@ const PageFlow = () => {
 
 export default PageFlow;
 
+// Enhanced PublishModal Component
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPublish: () => void;
-  setShareLink: (value: boolean) => void;
+  setShareUrl: (link: string) => void;
 }
 
 const PublishModal: React.FC<PublishModalProps> = ({
   isOpen,
   onClose,
   onPublish,
+  setShareUrl,
 }) => {
-  const [emails, setEmails] = useState<string[]>([""]);
+  const [emailAccess, setEmailAccess] = useState<EmailAccess[]>([
+    { email: "", permissions: [AccessPermission.VIEW] },
+  ]);
   const [responderType, setResponderType] = useState<"Anyone" | "Restricted">(
     "Anyone"
   );
-  const [showManageDropdown, setShowManageDropdown] = useState(false);
   const [showEmailDropdown, setShowEmailDropdown] = useState(false);
   const [selectedEmailIndex, setSelectedEmailIndex] = useState<number | null>(
     null
   );
+  const [projectId, setProjectId] = useState<string>("");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const { id: formId } = useParams<{ id: string }>();
   const [linkModel, setLinkModel] = useState(false);
-  const [emailModel, setEmailModel] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch projects when modal opens
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!isOpen) return;
+
+      setLoadingProjects(true);
+      try {
+        const response = (await getAllProjects()) as {
+          success: boolean;
+          projects: Project[];
+        };
+        if (response.success && response.projects) {
+          setProjects(response.projects);
+        }
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, [isOpen]);
+
+  // Handle project selection
+  const handleProjectSelect = (project: Project) => {
+    setSelectedProject(project);
+    setProjectId(project.id);
+  };
+
   const addEmail = () => {
-    setEmails([...emails, ""]);
+    setEmailAccess([
+      ...emailAccess,
+      { email: "", permissions: [AccessPermission.VIEW] },
+    ]);
   };
 
-  const updateEmail = (index: number, value: string) => {
-    const newEmails = [...emails];
-    newEmails[index] = value;
-    setEmails(newEmails);
+  const updateEmail = (index: number, email: string) => {
+    const newEmailAccess = [...emailAccess];
+    newEmailAccess[index].email = email;
+    setEmailAccess(newEmailAccess);
   };
 
-  const removeEmail = (index: number) => {
-    if (emails.length > 1) {
-      const newEmails = emails.filter((_, i) => i !== index);
-      setEmails(newEmails);
-      setShowEmailDropdown(false);
-      setSelectedEmailIndex(null);
-    }
+  const setPermission = (index: number, permission: AccessPermission) => {
+    const newEmailAccess = [...emailAccess];
+    // Set only one permission for the email
+    newEmailAccess[index].permissions = [permission];
+    setEmailAccess(newEmailAccess);
   };
 
   const handleEmailEditClick = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
     setSelectedEmailIndex(index);
     setShowEmailDropdown(!showEmailDropdown);
-    setShowManageDropdown(false);
   };
 
-  console.log(handleEmailEditClick);
   const validateEmails = (): boolean => {
     if (responderType === "Anyone") return true;
 
-    const validEmails = emails.filter((email) => {
-      const trimmed = email.trim();
-      return trimmed && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+    const validEmails = emailAccess.filter((access) => {
+      const trimmed = access.email.trim();
+      return (
+        trimmed &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) &&
+        access.permissions.length > 0
+      );
     });
 
     return validEmails.length > 0;
   };
 
   const handlePublish = async () => {
-    console.log("emails", emails);
     setError(null);
 
     if (!validateEmails()) {
       setError(
-        "Please enter at least one valid email address for restricted access."
+        "Please enter at least one valid email address with permissions for restricted access."
       );
       return;
     }
@@ -330,28 +370,48 @@ const PublishModal: React.FC<PublishModalProps> = ({
         setIsPublishing(false);
         return;
       }
+
+      const validEmailAccess = emailAccess.filter((access) => {
+        const trimmed = access.email.trim();
+        return (
+          trimmed &&
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) &&
+          access.permissions.length > 0
+        );
+      });
+
       const settings: FormPublishSettings = {
         isPublic: responderType === "Anyone",
-        allowedEmails: emails
-          .map((email) => email.trim())
-          .filter((email) => email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)),
+        allowedEmails: validEmailAccess.map((access) => access.email.trim()),
+        emailAccess: validEmailAccess,
         responderType,
+        projectId: projectId || undefined,
       };
 
       const result = await publishForm(formId, settings);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      if (result?.data?.shareUrl) {
+        console.log(result.data.shareUrl);
+        setShareUrl(result.data.shareUrl);
+        toast.success("Form published successfully");
+        onPublish();
+      } else {
+        throw new Error("Shareable link not received in response");
+      }
+
+      setShareUrl(result.data.shareUrl);
+
       onPublish();
-      console.log("result", result);
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to publish form. Please try again."
-      );
+      setError(err.response?.data?.message);
     } finally {
       setIsPublishing(false);
     }
   };
 
   if (!isOpen) return null;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -365,12 +425,46 @@ const PublishModal: React.FC<PublishModalProps> = ({
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body" onClick={() => setShowEmailDropdown(false)}>
           <div className="section">
             <label>Save to</label>
             <div className="input-row">
-              <span>Project</span>
-              <button className="change-btn">Change</button>
+              {loadingProjects ? (
+                <div
+                  className="email-input"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#666",
+                  }}
+                >
+                  Loading projects...
+                </div>
+              ) : (
+                <select
+                  value={selectedProject?.id || ""}
+                  onChange={(e) => {
+                    const project = projects.find(
+                      (p) => p.id === e.target.value
+                    );
+                    if (project) {
+                      handleProjectSelect(project);
+                    } else {
+                      setSelectedProject(null);
+                      setProjectId("");
+                    }
+                  }}
+                  className="email-input"
+                  style={{ cursor: "pointer" }}
+                >
+                  <option value="">Select a project (optional)</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
 
@@ -383,30 +477,27 @@ const PublishModal: React.FC<PublishModalProps> = ({
                   className="manage-btn"
                   onClick={() => setLinkModel(!linkModel)}
                 >
-                  {responderType === "Anyone"
-                    ? "Anyone"
-                    : responderType === "Restricted"
-                    ? "Restricted"
-                    : "Manage"}
+                  {responderType === "Anyone" ? "Anyone" : "Restricted"}
                 </button>
               </div>
             </div>
           </div>
+
           {linkModel && (
             <div
               style={{
                 position: "absolute",
                 left: "60%",
-                transform: "translateX(-50%)", // to center horizontally
-                // border: "1px solid red",
+                transform: "translateX(-50%)",
                 paddingLeft: "20px",
                 paddingRight: "20px",
                 paddingTop: "5px",
                 paddingBottom: "5px",
                 background: "white",
-                color: "#1F2937", // gray-800
+                color: "#1F2937",
                 borderRadius: "8px",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)", // ✅ shadow
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                zIndex: 1000,
               }}
             >
               <div
@@ -415,6 +506,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
                   fontFamily: "inter",
                   fontSize: "20px",
                   cursor: "pointer",
+                  padding: "5px 0",
                 }}
                 onClick={() => {
                   setResponderType("Anyone");
@@ -423,21 +515,19 @@ const PublishModal: React.FC<PublishModalProps> = ({
               >
                 Anyone
               </div>
-
               <div
                 style={{
-                  paddingTop: "5px",
                   color: "#1F2937",
                   fontFamily: "inter",
                   fontSize: "20px",
                   cursor: "pointer",
+                  padding: "5px 0",
                 }}
                 onClick={() => {
                   setLinkModel(false);
                   setResponderType("Restricted");
                 }}
               >
-                {" "}
                 Restricted
               </div>
             </div>
@@ -445,82 +535,80 @@ const PublishModal: React.FC<PublishModalProps> = ({
 
           {responderType === "Restricted" && (
             <div className="section">
-              <label>Share</label>
-              {emails.map((email, index) => (
-                <div key={index} className="email-input-row">
+              <label>Share with Access Control</label>
+              {emailAccess.map((access, index) => (
+                <div
+                  key={index}
+                  className="email-input-row"
+                  style={{ marginBottom: "10px" }}
+                >
                   <input
                     type="email"
-                    placeholder="Mail"
-                    value={email}
+                    placeholder="Email address"
+                    value={access.email}
                     onChange={(e) => updateEmail(index, e.target.value)}
                     className="email-input"
                   />
                   <button
                     className="edit-btn"
-                    onClick={() => setEmailModel(!emailModel)}
+                    onClick={(e) => handleEmailEditClick(e, index)}
                   >
-                    Edit
+                    {access.permissions.length > 0
+                      ? access.permissions[0].charAt(0).toUpperCase() +
+                        access.permissions[0].slice(1)
+                      : "None"}
                   </button>
+
+                  {/* Permissions Checkboxes */}
+                  {selectedEmailIndex === index && showEmailDropdown && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "70%",
+                        transform: "translateX(-50%)",
+                        padding: "10px",
+                        background: "white",
+                        color: "#1F2937",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
+                        zIndex: 1000,
+                        border: "1px solid #ccc",
+                      }}
+                    >
+                      {Object.values(AccessPermission).map((permission) => (
+                        <div key={permission} style={{ padding: "5px 0" }}>
+                          <label
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name={`permission-${index}`}
+                              checked={access.permissions.includes(permission)}
+                              onChange={() => setPermission(index, permission)}
+                              style={{ marginRight: "8px" }}
+                            />
+                            {permission.charAt(0).toUpperCase() +
+                              permission.slice(1)}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               <button className="add-mails-btn" onClick={addEmail}>
-                + Add Mails
+                + Add Email
               </button>
             </div>
           )}
 
-          {emailModel && (
-            <div
-              style={{
-                position: "absolute",
-                left: "70%",
-                transform: "translateX(-50%)", // to center horizontally
-                // border: "1px solid red",
-                paddingLeft: "20px",
-                paddingRight: "20px",
-                paddingTop: "5px",
-                paddingBottom: "5px",
-                background: "white",
-                color: "#1F2937", // gray-800
-                borderRadius: "8px",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.5)",
-                top: "350px",
-                right: "5px",
-              }}
-            >
-              <div
-                style={{
-                  paddingTop: "5px",
-                  color: "#1F2937",
-                  fontFamily: "inter",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                }}
-              >
-                Edit
-              </div>
-              <div
-                style={{
-                  paddingTop: "5px",
-                  color: "#1F2937",
-                  fontFamily: "inter",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                }}
-              >
-                View
-              </div>
-              <div
-                style={{
-                  paddingTop: "5px",
-                  color: "#1F2937",
-                  fontFamily: "inter",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                }}
-              >
-                Remove
-              </div>
+          {error && (
+            <div style={{ color: "red", marginTop: "10px", fontSize: "14px" }}>
+              {error}
             </div>
           )}
         </div>
@@ -528,14 +616,10 @@ const PublishModal: React.FC<PublishModalProps> = ({
         <div className="modal-footer">
           <button
             className="publish-btn"
-            onClick={() => {
-              // onPublish();
-              // onClose();
-              handlePublish();
-              // setShareLink(true);
-            }}
+            onClick={handlePublish}
+            disabled={isPublishing}
           >
-            Publish
+            {isPublishing ? "Publishing..." : "Publish"}
           </button>
         </div>
       </div>

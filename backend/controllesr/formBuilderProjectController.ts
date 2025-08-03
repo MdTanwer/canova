@@ -260,3 +260,39 @@ export const deleteById = async (
     next(createError("Failed to delete by id", 500));
   }
 };
+
+
+export const getAllProjects = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Get all projects, selecting only name and _id fields
+    const projects = await Project.find(
+      {}, // Empty filter to get all projects
+      { name: 1, _id: 1, createdAt: 1, updatedAt: 1 } // Select only specific fields
+    )
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .lean(); // Use lean() for better performance since we don't need full documents
+
+    // Transform the data to have consistent field names
+    const projectList = projects.map(project => ({
+      id: project._id,
+      name: project.name,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "Projects retrieved successfully",
+      count: projectList.length,
+      projects: projectList
+    });
+
+  } catch (error) {
+    console.error('Get all projects error:', error);
+    next(createError("Failed to retrieve projects", 500));
+  }
+};

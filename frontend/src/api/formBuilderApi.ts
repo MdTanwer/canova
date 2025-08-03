@@ -49,12 +49,6 @@ export const getPageFlow = async (formId: string, pageId: string) => {
   return response.data;
 };
 
-// export const publishForm = async (formId: string) => {
-//   const payload = {};
-//   const response = await api.post(`/publish/$formId`, payload);
-//   return response.data;
-// };
-
 export const publishForm = async (
   formId: string,
   settings: FormPublishSettings
@@ -63,6 +57,9 @@ export const publishForm = async (
     isPublic: settings.responderType === "Anyone",
     allowedEmails:
       settings.responderType === "Restricted" ? settings.allowedEmails : [],
+    emailAccess:
+      settings.responderType === "Restricted" ? settings.emailAccess : [],
+    projectId: settings.projectId,
   };
 
   const response = await api.post(`/form/publish/${formId}`, payload);
@@ -111,5 +108,15 @@ export const updateFormDetails = async (
     `/form/color/${formId}`,
     updates
   );
+  return response.data;
+};
+
+export const getAllProjects = async () => {
+  const response = await api.get("/project");
+  return response.data;
+};
+
+export const getFormShareUrl = async (formId: string) => {
+  const response = await api.get(`/form/shareUrl/${formId}`);
   return response.data;
 };

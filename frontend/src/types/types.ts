@@ -110,20 +110,11 @@ export interface PageFlowData {
   message?: string;
 }
 
-export interface FormPublishSettings {
-  isPublic: boolean;
-  allowedEmails: string[];
-  responderType: "Anyone" | "Restricted";
-}
-
-export interface PublishResponse {
-  success: boolean;
-  message: string;
-  uniqueUrl?: string;
-  shareableLink?: string;
-  isPublic?: boolean;
-  allowedEmails?: string[];
-}
+// export interface FormPublishSettings {
+//   isPublic: boolean;
+//   allowedEmails: string[];
+//   responderType: "Anyone" | "Restricted";
+// }
 
 export interface UploadResponse {
   success: boolean;
@@ -142,4 +133,50 @@ export interface UploadResponse {
 export interface UploadPayload {
   file: File; // HTML File object (from input)
   mediaType: "image" | "video"; // optional, default is image
+}
+
+// Updated types for enhanced access control
+export enum AccessPermission {
+  VIEW = "view",
+  EDIT = "edit",
+  DELETE = "delete",
+}
+
+export interface EmailAccess {
+  email: string;
+  permissions: AccessPermission[];
+}
+
+export interface FormPublishSettings {
+  isPublic: boolean;
+  allowedEmails: string[]; // For backward compatibility
+  emailAccess: EmailAccess[]; // New granular access control
+  responderType: "Anyone" | "Restricted";
+  projectId?: string; // Optional project ID
+}
+
+export interface PublishResponse {
+  success: boolean;
+  message: string;
+  data: {
+    formId: string;
+    uniqueUrl: string;
+    shareUrl: string;
+    isPublic: boolean;
+    projectId?: string;
+    status: string;
+    publishedAt: string;
+    accessControl: {
+      isPublic: boolean;
+      emailAccess: EmailAccess[];
+      allowedEmails: string[];
+    };
+  };
+}
+
+export interface GetAllProjectsResponse {
+  success: boolean;
+  message: string;
+  count: number;
+  projects: Project[];
 }

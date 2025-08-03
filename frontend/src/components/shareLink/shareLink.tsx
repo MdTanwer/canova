@@ -1,21 +1,52 @@
+import React, { useState, useEffect } from "react";
 import "../../styles/formBuilder/pageFlow.css";
 import "../../styles/PageFlow/PageFlow.css";
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPublish: () => void;
+  formId?: string;
+  shareUrl?: string;
 }
 
 const ShareLink: React.FC<PublishModalProps> = ({
   isOpen,
   onClose,
-  onPublish,
+  formId,
+  shareUrl,
 }) => {
-  // const [link, setLink] = useState(false);
+  const [copied, setCopied] = useState<boolean>(false);
 
-  // const handleManageClick = (e: any) => {
-  //   e.stopPropagation();
-  // };
+  console.log("shareUrl from the shareLink component", shareUrl);
+
+  // Fetch share URL when modal opens
+  useEffect(() => {
+    if (isOpen && formId) {
+      console.log("ShareLink modal opened with formId:", formId);
+      setCopied(false); // Reset copy state
+    }
+  }, [isOpen, formId]);
+
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = shareUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   if (!isOpen) return null;
   return (
@@ -33,18 +64,34 @@ const ShareLink: React.FC<PublishModalProps> = ({
 
         <div className="modal-body">
           <div className="section" style={{ position: "relative" }}>
-            <label>Responders</label>
+            <label>Share Link</label>
             <div className="input-row responder-row">
-              <span> with the Link</span>
-              <div className="manage-container"></div>
+              {shareUrl ? (
+                <div className="share-link-container">
+                  <input
+                    type="text"
+                    value={shareUrl}
+                    readOnly
+                    className="share-link-input"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <button
+                    className={`copy-btn ${copied ? "copied" : ""}`}
+                    onClick={handleCopyLink}
+                    title="Copy link"
+                  >
+                    {copied ? "✓ Copied!" : "Copy"}
+                  </button>
+                </div>
+              ) : (
+                <div className="no-link-container">
+                  <span>
+                    No share link available. Please publish the form first.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="modal-footer">
-          <button className="publish-btn" onClick={onPublish}>
-            Publish
-          </button>
         </div>
       </div>
     </div>

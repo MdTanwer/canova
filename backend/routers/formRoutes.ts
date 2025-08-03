@@ -5,10 +5,11 @@ import {
   getFormNameById,
   getPagesByFormId,
   getFormByUniqueUrl,
-  formPublich,
   verifyEmail,
   updateFormBackgroundColor,
   updateFormDescription,
+  formPublish,
+  getFormShareUrl,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 import { checkFormAccess } from "../middlewares/authMiddleware";
@@ -23,6 +24,7 @@ formRouter.get("/name/:formId", getFormNameById);
 
 formRouter.get("/access/:uniqueUrl", checkFormAccess, getFormByUniqueUrl);
 formRouter.post("/verify-browser-email/:uniqueUrl", verifyEmail);
-formRouter.post("/publish/:formId", formPublich);
+formRouter.post("/publish/:formId", formPublish);
 formRouter.put("/color/:formId", updateFormBackgroundColor);
 formRouter.put("/desc/:formId", updateFormDescription);
+formRouter.get("/shareUrl/:formId", getFormShareUrl);
