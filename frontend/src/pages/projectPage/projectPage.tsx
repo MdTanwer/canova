@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "../../components/home/Sidebar";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
+import EditprojectModel from "../../components/ProjectCard/editProject";
 import "../../styles/home/Dashboard.css";
 // import { useNavigate } from "react-router-dom";
 import { getAllProjectsSummary } from "../../api/formBuilderApi";
@@ -12,6 +13,11 @@ const Home: React.FC = () => {
   // const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State for project editing modal
+  const [editProjectModalOpen, setEditProjectModalOpen] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string>("");
+  const [editingProjectName, setEditingProjectName] = useState<string>("");
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -53,6 +59,33 @@ const Home: React.FC = () => {
     // Implement menu actions
   };
 
+  // Handlers for project editing modal
+  const handleOpenEditProjectModal = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setEditingProjectId(projectId);
+      setEditingProjectName(project.name);
+      setEditProjectModalOpen(true);
+    }
+  };
+
+  const handleCloseEditProjectModal = () => {
+    setEditProjectModalOpen(false);
+    setEditingProjectId("");
+    setEditingProjectName("");
+  };
+
+  const handleProjectNameUpdated = (newName: string) => {
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === editingProjectId 
+          ? { ...project, name: newName }
+          : project
+      )
+    );
+    handleCloseEditProjectModal();
+  };
+
   // Filter projects to show only type "project"
   const projectTypeItems = projects.filter(
     (project) => project.type === "project"
@@ -92,6 +125,8 @@ const Home: React.FC = () => {
                     }}
                     onViewAnalysis={handleViewAnalysis}
                     onMenuClick={handleMenuClick}
+                    setProjectName={setEditProjectModalOpen}
+                    setProjectId={handleOpenEditProjectModal}
                   />
                 ))}
               </div>
@@ -120,6 +155,8 @@ const Home: React.FC = () => {
                     }}
                     onViewAnalysis={handleViewAnalysis}
                     onMenuClick={handleMenuClick}
+                    setProjectName={setEditProjectModalOpen}
+                    setProjectId={handleOpenEditProjectModal}
                   />
                 ))}
               </div>
@@ -127,6 +164,15 @@ const Home: React.FC = () => {
           </section>
         </div>
       </main>
+      
+      {/* Edit Project Modal */}
+      <EditprojectModel
+        isOpen={editProjectModalOpen}
+        onClose={handleCloseEditProjectModal}
+        projectId={editingProjectId}
+        currentProjectName={editingProjectName}
+        onProjectNameUpdated={handleProjectNameUpdated}
+      />
     </div>
   );
 };

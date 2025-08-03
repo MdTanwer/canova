@@ -12,6 +12,10 @@ const Home: React.FC = () => {
   // const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [projectName, setProjectName] = useState(false);
+  const [projectId, setProjectId] = useState("");
+  console.log("projectName", projectName);
+  console.log("projectId", projectId);
 
   console.log("projects", projects);
 
@@ -86,6 +90,8 @@ const Home: React.FC = () => {
                     }}
                     onViewAnalysis={handleViewAnalysis}
                     onMenuClick={handleMenuClick}
+                    setProjectName={setProjectName}
+                    setProjectId={setProjectId}
                   />
                 ))}
               </div>
@@ -115,6 +121,8 @@ const Home: React.FC = () => {
                       }}
                       onViewAnalysis={handleViewAnalysis}
                       onMenuClick={handleMenuClick}
+                      setProjectName={setProjectName}
+                      setProjectId={setProjectId}
                     />
                   ))}
               </div>
