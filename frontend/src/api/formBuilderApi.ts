@@ -116,7 +116,18 @@ export const getAllProjects = async () => {
   return response.data;
 };
 
-export const getFormShareUrl = async (formId: string) => {
-  const response = await api.get(`/form/shareUrl/${formId}`);
+// Type definitions for API response
+interface ShareUrlResponse {
+  success: boolean;
+  data: {
+    shareableLink: string;
+  };
+}
+// API function to get share URL
+// API function to get share URL
+export const getFormShareUrl = async (
+  formId: string
+): Promise<ShareUrlResponse> => {
+  const response = await api.get<ShareUrlResponse>(`/form/shareUrl/${formId}`);
   return response.data;
 };

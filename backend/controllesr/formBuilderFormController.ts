@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
 import { Form, Page } from "../models/Index";
 import { AccessPermission } from "../models/formbuilderForm";
+import { v4 as uuidv4 } from "uuid";
 
 export const createRandomForm = async (
   req: Request,
@@ -127,8 +128,10 @@ export const formPublish = async (
     //     .json({ success: false, message: "Only form owner can publish" });
     // }
 
+    const uniqueUrl = uuidv4();
+
     // Generate shareable link
-    const shareableLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${form.uniqueUrl}`;
+    const shareableLink = `${process.env.FRONTEND_URL || "http://localhost:5173"}/public/${uniqueUrl}`;
 
     // Prepare update data
     const updateData: any = {
@@ -137,7 +140,9 @@ export const formPublish = async (
       isPublic: isPublic || false,
       allowedEmails: [], // Clear old allowed emails
       emailAccess: [], // Clear old email access
-      shareUrl: shareableLink, // Save shareable link to database
+      shareUrl: shareableLink,
+      uniqueUrl: uniqueUrl,
+      isShared: true,
     };
 
     // Add project ID if provided
@@ -241,7 +246,6 @@ export const formPublish = async (
 };
 // Backend API Routes
 
-
 export const getFormShareUrl = async (
   req: any,
   res: Response,
@@ -328,6 +332,7 @@ export const getFormByUniqueUrl = async (req: Request, res: Response) => {
 };
 
 // POST: Verify email for restricted forms
+// POST: Verify email for restricted forms
 export const verifyEmail = async (req: Request, res: Response) => {
   try {
     const { uniqueUrl } = req.params;
@@ -350,17 +355,19 @@ export const verifyEmail = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if email is allowed
-    const isEmailAllowed = form.allowedEmails.includes(email.toLowerCase());
+    // Check if email is allowed in emailAccess array
+    const emailAccessEntry = form.emailAccess.find(
+      (entry: any) => entry.email.toLowerCase() === email.toLowerCase()
+    );
 
-    if (!isEmailAllowed) {
+    if (!emailAccessEntry) {
       return res.status(403).json({
         success: false,
         message: "Your email is not authorized to access this form",
       });
     }
 
-    // Email is verified, return full form data
+    // Email is verified, return full form data with user permissions
     res.json({
       success: true,
       message: "Email verified successfully",
@@ -372,6 +379,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
         isPublic: false,
         requiresEmail: false, // Now they have access
       },
+      // Optional: include user permissions for future use
+      userPermissions: emailAccessEntry.permissions,
+      userEmail: emailAccessEntry.email,
     });
   } catch (error) {
     console.error("Error verifying email:", error);

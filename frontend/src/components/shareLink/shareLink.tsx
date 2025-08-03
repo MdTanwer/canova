@@ -4,7 +4,7 @@ import "../../styles/PageFlow/PageFlow.css";
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPublish: () => void;
+  onPublish?: () => void;
   formId?: string;
   shareUrl?: string;
 }

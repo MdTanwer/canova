@@ -140,61 +140,6 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.options = options.map((opt: string) => opt.trim());
         questionData.referenceUrl = referenceUrl;
 
-        // ✅ Handle correct answers for option-based questions
-        if (type === "multiple-choice" || type === "dropdowns") {
-          // Single correct answer
-          if (correctAnswer !== undefined) {
-            if (
-              typeof correctAnswer !== "number" ||
-              correctAnswer < 0 ||
-              correctAnswer >= options.length
-            ) {
-              return res.status(400).json({
-                success: false,
-                message: "correctAnswer must be a valid option index",
-              });
-            }
-            questionData.correctAnswer = correctAnswer;
-          }
-
-          // Prevent using correctAnswers for single-choice
-          if (correctAnswers && correctAnswers.length > 0) {
-            return res.status(400).json({
-              success: false,
-              message:
-                "Use correctAnswer (not correctAnswers) for single-choice questions",
-            });
-          }
-        } else if (type === "checkbox") {
-          // Multiple correct answers
-          if (correctAnswers && Array.isArray(correctAnswers)) {
-            // Validate all indices are within options range
-            const invalidIndices = correctAnswers.filter(
-              (idx: number) =>
-                typeof idx !== "number" || idx < 0 || idx >= options.length
-            );
-
-            if (invalidIndices.length > 0) {
-              return res.status(400).json({
-                success: false,
-                message: "All correctAnswers must be valid option indices",
-              });
-            }
-
-            questionData.correctAnswers = correctAnswers;
-          }
-
-          // Prevent using correctAnswer for multi-choice
-          if (correctAnswer !== undefined) {
-            return res.status(400).json({
-              success: false,
-              message:
-                "Use correctAnswers (not correctAnswer) for multi-choice questions",
-            });
-          }
-        }
-        break;
-
       case "short":
       case "long":
         questionData.placeholder = placeholder;
@@ -210,24 +155,11 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.selectedRating = selectedRating;
         questionData.backgroundColor = backgroundColor;
         questionData.referenceUrl = referenceUrl;
-        if (!selectedRating) {
-          return res.status(400).json({
-            success: false,
-            message: "Star count must be needed",
-          });
-        }
-        break;
+
       case "date":
         questionData.dateAnswer = dateAnswer;
         questionData.referenceUrl = referenceUrl;
         questionData.backgroundColor = backgroundColor;
-        if (!dateAnswer) {
-          return res.status(400).json({
-            success: false,
-            message: " DateAnswer must be needed",
-          });
-        }
-        break;
 
       case "LinearScale":
         questionData.backgroundColor = backgroundColor;
@@ -237,14 +169,6 @@ export const createQuestion = async (req: Request, res: Response) => {
         questionData.scaleMax = scaleMax || 10;
         questionData.scaleStartLabel = scaleStartLabel || "Scale Starting";
         questionData.scaleEndLabel = scaleEndLabel || "Scale Ending";
-
-        if (!questionData.selectedScale) {
-          return res.status(400).json({
-            success: false,
-            message: "Scale minimum must be less than maximum",
-          });
-        }
-        break;
     }
 
     // Create and save question

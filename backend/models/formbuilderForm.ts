@@ -35,7 +35,7 @@ export interface IForm extends Document {
   isPublic: boolean;
   allowedEmails: string[]; // Deprecated - keeping for backward compatibility
   emailAccess: IEmailAccess[]; // New granular access control
-  uniqueUrl?: string;
+  uniqueUrl: string;
   shareUrl?: string;
 
   // Methods for access control

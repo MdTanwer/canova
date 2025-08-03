@@ -589,7 +589,6 @@ const FormBuilderPage: React.FC = () => {
     // Function to handle upload for specific question
     const handleUploadForQuestion = (questionId: string) => {
       setCurrentUploadingQuestionId(questionId);
-      setOpenuploadMedia(true);
     };
     return (
       <div className="question-container1">

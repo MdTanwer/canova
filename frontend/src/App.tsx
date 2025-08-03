@@ -20,7 +20,6 @@ import ProfilePage from "./pages/profilePage/profilepage";
 import FormBuilderPage from "./pages/formBuilderPage/formbuilderPage";
 import PageFlow from "./pages/pageFlow/pageFlow";
 import PublicAccess from "./pages/publicaccess/publicAccess";
-import PrivateAccessByEmail from "./pages/privateAccessByEmail/privateAccessByEmail";
 import { useAuth } from "./context/useAuth";
 import FormAnalysis from "./pages/formAnalysis/formAnalysis";
 import Projectanalysis from "./pages/projectAnalysis/projectanalysis";
@@ -103,10 +102,7 @@ function App() {
             element={<FormBuilderPage />}
           />
           <Route path="/public/:uniqueUrl" element={<PublicAccess />} />
-          <Route
-            path="/private/:uniqueUrl"
-            element={<PrivateAccessByEmail />}
-          />
+
           <Route path="/page-flow/:id/:pageId" element={<PageFlow />} />
 
           <Route path="/login" element={<LoginPage />} />
