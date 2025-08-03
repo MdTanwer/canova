@@ -10,6 +10,7 @@ import {
   updateFormDescription,
   formPublish,
   getFormShareUrl,
+  attemptQuestion,
 } from "../controllesr/formBuilderFormController";
 import { createNextPage } from "../controllesr/formBuilderProjectController";
 import { checkFormAccess } from "../middlewares/authMiddleware";
@@ -28,3 +29,4 @@ formRouter.post("/publish/:formId", formPublish);
 formRouter.put("/color/:formId", updateFormBackgroundColor);
 formRouter.put("/desc/:formId", updateFormDescription);
 formRouter.get("/shareUrl/:formId", getFormShareUrl);
+formRouter.post("/shareUrl/:formId", attemptQuestion);

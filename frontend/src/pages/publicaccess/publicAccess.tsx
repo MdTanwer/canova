@@ -153,7 +153,72 @@ const FormAccess = () => {
   }
 
   if (form.isPublic && hasAccess) {
-    return <div>this is public rjheifhsdkhsj</div>;
+    return (
+      <div
+        style={{
+          backgroundColor: "#f0f9ff",
+          border: "2px solid #0ea5e9",
+          borderRadius: "12px",
+          padding: "24px",
+          margin: "20px auto",
+          maxWidth: "500px",
+          textAlign: "center",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "48px",
+            marginBottom: "12px",
+          }}
+        >
+          ✅
+        </div>
+
+        <h2
+          style={{
+            color: "#0f172a",
+            fontSize: "24px",
+            fontWeight: "bold",
+            margin: "0 0 8px 0",
+          }}
+        >
+          Any one can Access this form!
+        </h2>
+
+        <p
+          style={{
+            color: "#64748b",
+            fontSize: "16px",
+            margin: "0 0 16px 0",
+            lineHeight: "1.5",
+          }}
+        >
+          Thank you .
+        </p>
+
+        <div
+          style={{
+            backgroundColor: "#e0f2fe",
+            borderRadius: "8px",
+            padding: "12px",
+            marginTop: "16px",
+          }}
+        >
+          <p
+            style={{
+              color: "#0369a1",
+              fontSize: "14px",
+              margin: "0",
+              fontWeight: "500",
+            }}
+          >
+            💾 Your data is securely stored in our database
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Form requires email verification and user doesn't have access yet

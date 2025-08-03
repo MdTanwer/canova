@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { createError } from "../middlewares/errorHandler";
-import { Form, Page } from "../models/Index";
+import { Form, Page, Question } from "../models/Index";
 import { AccessPermission } from "../models/formbuilderForm";
 import { v4 as uuidv4 } from "uuid";
+import { Answer } from "../models/Question";
 
 export const createRandomForm = async (
   req: Request,
@@ -544,5 +545,89 @@ export const updateFormDetails = async (
     });
   } catch (error) {
     next(createError("Failed to update form details", 500));
+  }
+};
+
+export const attemptQuestion = async (req: Request, res: Response) => {
+  try {
+    const {
+      questionId,
+      pageId,
+      textAnswer,
+      selectedOptions,
+      timeAnswer,
+      dateAnswer,
+      ratingValue,
+      scaleValue,
+    } = req.body;
+
+    // Validate required fields
+    if (!questionId || !pageId) {
+      return res.status(400).json({
+        success: false,
+        message: "questionId and pageId are required",
+      });
+    }
+
+    // Find the question
+    const question = await Question.findById(questionId);
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    // Create or update answer
+    const answerData = {
+      questionId,
+      pageId,
+      questionType: question.type,
+      textAnswer,
+      selectedOptions,
+      timeAnswer,
+      dateAnswer: dateAnswer ? new Date(dateAnswer) : undefined,
+      ratingValue,
+      scaleValue,
+    };
+
+    // Check if answer already exists
+    let answer = await Answer.findOne({ questionId, pageId });
+
+    if (answer) {
+      // Update existing answer
+      Object.assign(answer, answerData);
+      await answer.save();
+    } else {
+      // Create new answer
+      answer = new Answer(answerData);
+      await answer.save();
+    }
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: "✅ You have successfully submitted your answer!",
+      data: {
+        answerId: answer._id,
+        question: question.question,
+        questionType: question.type,
+        yourAnswer: {
+          textAnswer: answer.textAnswer,
+          selectedOptions: answer.selectedOptions,
+          timeAnswer: answer.timeAnswer,
+          dateAnswer: answer.dateAnswer,
+          ratingValue: answer.ratingValue,
+          scaleValue: answer.scaleValue,
+        },
+        submittedAt: answer.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error submitting answer:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit answer",
+    });
   }
 };
