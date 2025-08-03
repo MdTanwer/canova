@@ -25,7 +25,6 @@ const FormBuilderPage: React.FC = () => {
   const [activeItem, setActiveItem] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("#646464");
   const [sectionColor, setSectionColor] = useState("#646464");
-  console.log(setSectionColor, setBackgroundColor);
   const [allPages, setAllPages] = useState<Page[]>([]);
   const [formTitle, setFormTitle] = useState<string>("");
   const { id: formId } = useParams<{ id: string; pageId: string }>();
@@ -43,6 +42,12 @@ const FormBuilderPage: React.FC = () => {
 
   const [openuploadMedia, setOpenuploadMedia] = useState(false);
   console.log(referenceUrl);
+  const [currentUploadingQuestionId, setCurrentUploadingQuestionId] = useState<
+    string | null
+  >(null);
+  const [showTypeSelector, setShowTypeSelector] = useState<{
+    [questionId: string]: boolean;
+  }>({});
 
   // Fetch pages
   useEffect(() => {
@@ -572,6 +577,13 @@ const FormBuilderPage: React.FC = () => {
   }) => {
     const questionNumber = `Q${index + 1}`;
 
+    console.log("question", question);
+
+    // Function to handle upload for specific question
+    const handleUploadForQuestion = (questionId: string) => {
+      setCurrentUploadingQuestionId(questionId);
+      setOpenuploadMedia(true);
+    };
     return (
       <div className="question-container1">
         <div className="question-container ">
@@ -599,12 +611,26 @@ const FormBuilderPage: React.FC = () => {
               placeholder="Enter your question here"
             />
             <select
-              key={`${question.id}-type`} // ✅ Stable key
+              key={`${question.id}-type`}
               className="answer-type-dropdown"
               value={question.type}
-              onChange={(e) =>
-                updateQuestion(question.id!, "type", e.target.value)
-              }
+              onChange={(e) => {
+                const newType = e.target.value;
+                updateQuestion(question.id!, "type", newType);
+
+                // If changed to upload type, automatically trigger upload
+                if (newType === "upload") {
+                  setTimeout(() => {
+                    handleUploadForQuestion(question.id!);
+                  }, 100);
+                }
+
+                // Hide type selector after selection
+                setShowTypeSelector((prev) => ({
+                  ...prev,
+                  [question.id!]: false,
+                }));
+              }}
             >
               <option value="short">Short Answer</option>
               <option value="long">Long Answer</option>
@@ -617,8 +643,101 @@ const FormBuilderPage: React.FC = () => {
               <option value="upload">Upload</option>
             </select>
           </div>
+
           <div className="answer-area">
             {/* Reference Media Display */}
+
+            {question.referenceUrl && (
+              <div
+                className="reference-media-container"
+                style={{
+                  marginBottom: "16px",
+                  padding: "12px",
+                  border: "2px dashed #e0e0e0",
+                  borderRadius: "8px",
+                  backgroundColor: "#f9f9f9",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      color: "#666",
+                    }}
+                  >
+                    📎 Reference Media
+                  </span>
+                  <button
+                    onClick={() =>
+                      updateQuestion(question.id!, "referenceUrl", "")
+                    }
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#ff4444",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                    title="Remove reference"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Display based on media type */}
+                {question.referenceUrl.includes("image") ||
+                question.referenceUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                  <img
+                    src={question.referenceUrl}
+                    alt="Reference"
+                    style={{
+                      maxWidth: "200px",
+                      maxHeight: "150px",
+                      borderRadius: "4px",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : question.referenceUrl.includes("video") ||
+                  question.referenceUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                  <video
+                    controls
+                    style={{
+                      maxWidth: "200px",
+                      maxHeight: "150px",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <source src={question.referenceUrl} />
+                  </video>
+                ) : (
+                  <div
+                    style={{
+                      padding: "8px",
+                      backgroundColor: "#e9f1f7",
+                      borderRadius: "4px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    🔗{" "}
+                    <a
+                      href={question.referenceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {question.referenceUrl}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ✅ FIXED SHORT ANSWER INPUT */}
             {question.type === "short" && (
@@ -630,7 +749,6 @@ const FormBuilderPage: React.FC = () => {
                   updateQuestion(question.id!, "placeholder", e.target.value);
                 }}
                 placeholder="Enter placeholder text"
-                maxLength={question.maxLength}
               />
 
               // </div>
@@ -1060,7 +1178,261 @@ const FormBuilderPage: React.FC = () => {
             )}
 
             {question.type === "upload" && (
-              <div className="upload-area" style={{ marginTop: 24 }}></div>
+              <div className="upload-ui">
+                <div className="upload-ui-content">
+                  <div
+                    className="upload-ui-header"
+                    style={{ display: "flex", gap: 10 }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      Number of Files:
+                      <span
+                        style={{
+                          backgroundColor: "#EDF2F7",
+                          padding: "4px 10px",
+                          borderRadius: 8,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {referenceUrl.length}
+                      </span>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        image
+                        <span
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 8,
+                            backgroundColor: "#F7F9FA", // Light background
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        video
+                        <span
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 8,
+                            backgroundColor: "#F7F9FA", // Light background
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      </div>{" "}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        pdf
+                        <span
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: 8,
+                            backgroundColor: "#F7F9FA", // Light background
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                          }}
+                        >
+                          ✓
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {showTypeSelector[question.id!] && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: "0",
+                      zIndex: 1000,
+                      backgroundColor: "white",
+                      border: "2px solid #4ba3fd",
+                      borderRadius: "8px",
+                      padding: "16px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      minWidth: "280px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        marginBottom: "12px",
+                        fontWeight: "600",
+                        color: "#333",
+                      }}
+                    >
+                      🔄 Change Question Type
+                    </div>
+                    <div
+                      style={{
+                        marginBottom: "12px",
+                        fontSize: "14px",
+                        color: "#666",
+                      }}
+                    >
+                      Select a new type for this question with reference media:
+                    </div>
+
+                    {/* Type Selection Grid */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "8px",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      {[
+                        {
+                          value: "short",
+                          label: "📝 Short Answer",
+                          desc: "Single line text",
+                        },
+                        {
+                          value: "long",
+                          label: "📄 Long Answer",
+                          desc: "Multi-line text",
+                        },
+                        {
+                          value: "multiple-choice",
+                          label: "⚪ Multiple Choice",
+                          desc: "Single selection",
+                        },
+                        {
+                          value: "checkbox",
+                          label: "☑️ Checkbox",
+                          desc: "Multi selection",
+                        },
+                        {
+                          value: "rating",
+                          label: "⭐ Rating",
+                          desc: "Star rating",
+                        },
+                        {
+                          value: "date",
+                          label: "📅 Date",
+                          desc: "Date picker",
+                        },
+                        {
+                          value: "LinearScale",
+                          label: "📊 Linear Scale",
+                          desc: "Scale slider",
+                        },
+                        {
+                          value: "upload",
+                          label: "📤 Upload",
+                          desc: "File upload",
+                        },
+                      ].map((type) => (
+                        <button
+                          key={type.value}
+                          onClick={() => {
+                            updateQuestion(question.id!, "type", type.value);
+                            setShowTypeSelector((prev) => ({
+                              ...prev,
+                              [question.id!]: false,
+                            }));
+
+                            // If changing to upload, trigger upload again
+                            if (type.value === "upload") {
+                              setTimeout(() => {
+                                handleUploadForQuestion(question.id!);
+                              }, 100);
+                            }
+                          }}
+                          style={{
+                            padding: "8px",
+                            border:
+                              question.type === type.value
+                                ? "2px solid #4ba3fd"
+                                : "1px solid #ddd",
+                            borderRadius: "6px",
+                            backgroundColor:
+                              question.type === type.value
+                                ? "#f0f8ff"
+                                : "white",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontSize: "12px",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          <div
+                            style={{ fontWeight: "600", marginBottom: "2px" }}
+                          >
+                            {type.label}
+                          </div>
+                          <div style={{ color: "#666", fontSize: "10px" }}>
+                            {type.desc}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Close button */}
+                    <button
+                      onClick={() => {
+                        setShowTypeSelector((prev) => ({
+                          ...prev,
+                          [question.id!]: false,
+                        }));
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "6px",
+                        backgroundColor: "#f5f5f5",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      ❌ Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -1175,8 +1547,33 @@ const FormBuilderPage: React.FC = () => {
 
       {openuploadMedia && (
         <Uploadmedia
-          setOpenuploadMedia={setOpenuploadMedia}
-          setReferenceUrl={setReferenceUrl}
+          setOpenuploadMedia={(isOpen: boolean) => {
+            setOpenuploadMedia(isOpen);
+            // When upload modal closes, show type selector if we have a reference URL
+            if (!isOpen && currentUploadingQuestionId) {
+              const question = questions.find(
+                (q) => q.id === currentUploadingQuestionId
+              );
+              if (question?.referenceUrl) {
+                // Auto-show the type selector after upload completes
+                setTimeout(() => {
+                  setShowTypeSelector((prev) => ({
+                    ...prev,
+                    [currentUploadingQuestionId!]: true,
+                  }));
+                }, 300);
+              }
+            }
+          }}
+          setReferenceUrl={(url: string) => {
+            // Update the specific question that triggered the upload
+            if (currentUploadingQuestionId) {
+              updateQuestion(currentUploadingQuestionId, "referenceUrl", url);
+
+              // Don't reset currentUploadingQuestionId here - let it be handled by modal close
+            }
+            setReferenceUrl(url); // Keep your existing functionality
+          }}
         />
       )}
       {conditionModel && (
