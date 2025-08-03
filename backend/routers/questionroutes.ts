@@ -16,7 +16,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-export const questionRouter = express.Router();
+const questionRouter = express.Router();
 
 questionRouter.post("/", uploadReferenceMedia, createQuestion);
 
@@ -39,3 +39,5 @@ questionRouter.put("/page/:pageId/reorder", reorderQuestions);
 questionRouter.post("/bulk", bulkCreateQuestions);
 
 questionRouter.post("/media", upload.single("file"), fileUpload);
+
+export default questionRouter;
