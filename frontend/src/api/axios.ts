@@ -5,7 +5,7 @@ const baseURL =
   (typeof import.meta !== "undefined" &&
     import.meta.env &&
     import.meta.env.VITE_API_BASE_URL) ||
-  "https://backend-latest-hudf.onrender.com/api";
+  "https://backend1-latest-gt96.onrender.com/api";
 
 const api = axios.create({
   baseURL,

@@ -32,7 +32,7 @@ const FormAccess = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://backend-latest-hudf.onrender.com/api/form/access/${uniqueUrl}`
+        `https://backend1-latest-gt96.onrender.com/api/form/access/${uniqueUrl}`
       );
       const data = await response.json();
 
@@ -88,7 +88,7 @@ const FormAccess = () => {
 
     try {
       const response = await fetch(
-        `https://backend-latest-hudf.onrender.com/api/form/verify-browser-email/${uniqueUrl}`,
+        `https://backend1-latest-gt96.onrender.com/api/form/verify-browser-email/${uniqueUrl}`,
         {
           method: "POST",
           headers: {
