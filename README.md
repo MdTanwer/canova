@@ -7,8 +7,9 @@ Canova is a comprehensive, full-stack form builder application that enables user
 ### Core Functionality
 - **Multi-page Form Creation**: Build complex forms with multiple pages and sections
 - **Rich Question Types**: Support for text, multiple choice, checkboxes, dropdowns, date/time, rating scales, linear scales, and file uploads
+- **Media-Based Questions**: Upload images or videos first, then select any question type to ask questions about the uploaded media
 - **Reference Media**: Add images and videos to questions for better context
-- **Conditional Logic**: Create dynamic forms that adapt based on user responses
+- **Conditional Logic**: Create dynamic forms that adapt based on user responses (available only for multiple choice questions as per figma)
 - **Project Organization**: Group forms into projects for better management
 - **Real-time Analytics**: Track form views, responses, and performance metrics
 - **Public/Private Sharing**: Share forms publicly or keep them private
