@@ -32,7 +32,7 @@ const FormAccess = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://backend-v3-dr93.onrender.com/api/form/access/${uniqueUrl}`
+        `https://canova-1.onrender.com/api/form/access/${uniqueUrl}`
       );
       const data = await response.json();
 
@@ -88,7 +88,7 @@ const FormAccess = () => {
 
     try {
       const response = await fetch(
-        `https://backend-v3-dr93.onrender.com/api/form/verify-browser-email/${uniqueUrl}`,
+        `https://canova-1.onrender.com/api/form/verify-browser-email/${uniqueUrl}`,
         {
           method: "POST",
           headers: {
