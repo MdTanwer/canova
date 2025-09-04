@@ -39,7 +39,7 @@ app.use(
 app.use(helmet());
 app.use(
   cors({
-    origin: "https://canova-uhye.vercel.app",
+    origin: "https://canova-xf31.vercel.app",
     credentials: true,
   })
 );
