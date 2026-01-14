@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 export interface CustomError extends Error {
   statusCode?: number;
   isOperational?: boolean;
-}
+}jfbvjflhgbljfgbrjfgrbrejhrbejgherbgjhrberiu
 
 export const errorHandler = (
   err: CustomError,
